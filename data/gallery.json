@@ -1,0 +1,170 @@
+{
+  "works": [
+    {
+      "id": "work-test",
+      "title": "Test Artwork",
+      "year": "2025",
+      "medium": "Digital Upload",
+      "dimensions": "10 × 8 inches",
+      "category": "test",
+      "description": "This is a test artwork to verify image uploads are working correctly.",
+      "imageUrl": "/uploads/test.jpg",
+      "status": "available",
+      "price": "Test Price"
+    },
+    {
+      "id": "work-001",
+      "title": "Contemplation in Blue",
+      "year": "2023",
+      "medium": "Oil on Canvas",
+      "dimensions": "48 × 36 inches",
+      "category": "paintings",
+      "description": "This piece explores themes of solitude and reflection through a primarily blue color palette. The abstracted forms suggest a figure in contemplation against a window or portal.",
+      "imageUrl": "/images/work-001.jpg",
+      "status": "available",
+      "price": "$8,500"
+    },
+    {
+      "id": "work-002",
+      "title": "Urban Fragment No. 3",
+      "year": "2023",
+      "medium": "Mixed Media on Panel",
+      "dimensions": "24 × 24 inches",
+      "category": "mixed media",
+      "description": "Part of the Urban Fragment series, this work incorporates found objects and textures from city environments, layered with paint and resin to create depth and visual interest.",
+      "imageUrl": "/images/work-002.jpg",
+      "status": "sold"
+    },
+    {
+      "id": "work-003",
+      "title": "Meridian Study",
+      "year": "2022",
+      "medium": "Acrylic and Charcoal",
+      "dimensions": "36 × 48 inches",
+      "category": "drawings",
+      "description": "A study of intersecting lines and planes, creating a sense of movement and depth on a flat surface. The charcoal elements add texture and visual weight to the composition.",
+      "imageUrl": "/images/work-003.jpg",
+      "status": "available",
+      "price": "$5,800"
+    },
+    {
+      "id": "work-004",
+      "title": "Autumn Sequence",
+      "year": "2022",
+      "medium": "Oil on Linen",
+      "dimensions": "60 × 40 inches",
+      "category": "paintings",
+      "description": "Inspired by the transitional moments of autumn, this large-scale painting uses a warm, earthen palette to evoke the feeling of seasonal change and temporal passage.",
+      "imageUrl": "/images/work-004.jpg",
+      "status": "available",
+      "price": "$12,000"
+    },
+    {
+      "id": "work-005",
+      "title": "Structural Elements No. 7",
+      "year": "2021",
+      "medium": "Steel and Wood",
+      "dimensions": "18 × 12 × 8 inches",
+      "category": "sculptures",
+      "description": "This sculptural piece combines industrial and natural materials to explore themes of balance and tension. The contrasting elements create a dialogue between the manufactured and the organic.",
+      "imageUrl": "/images/work-005.jpg",
+      "status": "sold"
+    },
+    {
+      "id": "work-006",
+      "title": "Threshold",
+      "year": "2021",
+      "medium": "Oil and Gold Leaf on Canvas",
+      "dimensions": "36 × 36 inches",
+      "category": "paintings",
+      "description": "A meditation on transitions and liminal spaces, this square composition uses gold leaf to highlight moments of transformation within the painted surface.",
+      "imageUrl": "/images/work-006.jpg",
+      "status": "available",
+      "price": "$7,500"
+    },
+    {
+      "id": "work-007",
+      "title": "work",
+      "year": "3003",
+      "medium": "oil",
+      "dimensions": "233x556",
+      "category": "famou",
+      "description": "hjfakhlakthlat",
+      "imageUrl": "",
+      "status": "available",
+      "price": "700000000"
+    },
+    {
+      "id": "work-008",
+      "title": "dd",
+      "year": "44",
+      "medium": "dd",
+      "dimensions": "4x4",
+      "category": "dd",
+      "description": "dd",
+      "imageUrl": "",
+      "status": "available",
+      "price": "5555"
+    },
+    {
+      "id": "work-010",
+      "title": "hhhh",
+      "year": "44",
+      "medium": "dd",
+      "dimensions": "3x3",
+      "category": "eee",
+      "description": "adffd",
+      "imageUrl": "",
+      "status": "available",
+      "price": ""
+    },
+    {
+      "id": "work-011",
+      "title": "srew",
+      "year": "ere",
+      "medium": "afda",
+      "dimensions": "6x6",
+      "category": "aree",
+      "description": "ererer",
+      "imageUrl": "",
+      "status": "available",
+      "price": "5555"
+    },
+    {
+      "id": "work-012",
+      "title": "final",
+      "year": "44",
+      "medium": "idk",
+      "dimensions": "4x8",
+      "category": "IDK",
+      "description": "dafd",
+      "imageUrl": "",
+      "status": "available",
+      "price": ""
+    },
+    {
+      "id": "work-013",
+      "title": "test",
+      "year": "444",
+      "medium": "kfldjk",
+      "dimensions": "4x4",
+      "category": "kkddd",
+      "description": "ttt",
+      "imageUrl": "",
+      "status": "available",
+      "price": "555"
+    },
+    {
+      "id": "work-014",
+      "title": "dd",
+      "year": "dd",
+      "medium": "dd",
+      "dimensions": "233x556",
+      "category": "dd",
+      "description": "",
+      "imageUrl": "/images/work-mbtcqglbcps.jpg",
+      "status": "available",
+      "price": "55"
+    }
+  ]
+}

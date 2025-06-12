@@ -1,0 +1,173 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nav {
+  display: flex;
+  gap: 2rem;
+}
+
+.navLink {
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.navLink:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  background-color: #000;
+  transition: width 0.3s;
+}
+
+.navLink:hover:after {
+  width: 100%;
+}
+
+.main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.aboutContainer {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 4rem;
+}
+
+.imageSection {
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
+}
+
+.artistImage {
+  aspect-ratio: 3/4;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  max-width: 100%;
+  width: 100%;
+  max-height: 600px;
+}
+
+.actualImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  object-position: center top;
+}
+
+.imagePlaceholder {
+  color: #999;
+  font-size: 1rem;
+}
+
+.textSection {
+  padding-right: 2rem;
+}
+
+.textSection h1 {
+  margin-top: 0;
+  margin-bottom: 2rem;
+}
+
+.bio p {
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.exhibitions {
+  margin-top: 3rem;
+}
+
+.exhibitions h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+}
+
+.exhibitions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.exhibitions li {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.year {
+  flex: 0 0 60px;
+  font-weight: bold;
+}
+
+.details {
+  flex: 1;
+}
+
+.contact {
+  margin-top: 3rem;
+}
+
+.contact h2 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.contact p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+.footer {
+  padding: 2rem;
+  text-align: center;
+  border-top: 1px solid #eaeaea;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .aboutContainer {
+    grid-template-columns: 1fr;
+  }
+  
+  .imageSection {
+    position: static;
+    margin-bottom: 2rem;
+  }
+  
+  .artistImage {
+    max-width: 300px;
+    height: 400px;
+    margin: 0 auto;
+  }
+  
+  .textSection {
+    padding-right: 0;
+  }
+}

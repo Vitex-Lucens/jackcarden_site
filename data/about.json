@@ -1,0 +1,36 @@
+{
+  "artistImage": "/images/work-mbtf0awyaky.jpg",
+  "bio": [
+    "Jack Carden is a contemporary artist whose work explores the intersection of abstraction, materiality, and spatial perception. Working primarily in painting and mixed media, Carden creates compositions that balance formal elements with evocative narrative suggestions.",
+    "Born in 1985, Carden received his MFA from the Rhode Island School of Design and has exhibited in galleries throughout the United States and Europe. His work is held in several private and public collections, including the Museum of Contemporary Art in Chicago and the Hammer Museum in Los Angeles.",
+    "Carden's practice is characterized by a rigorous investigation of surface and structure, often employing unconventional materials alongside traditional painting techniques. His recent work has focused on the dialogue between architectural space and abstract form, informed by research into historical building methods and urban planning.",
+    "\"My work stems from an ongoing interest in how we perceive and construct our environments,\" says Carden. \"I'm interested in the tension between planned structure and intuitive response, between what we design and what emerges through the process of making.\"",
+    "When not in his studio, Carden teaches advanced painting techniques at the Art Institute and leads workshops on contemporary art practice."
+  ],
+  "exhibitions": [
+    {
+      "year": "2023",
+      "details": "\"Structural Elements,\" Solo Exhibition, Gallery Contemporary, New York, NY"
+    },
+    {
+      "year": "2022",
+      "details": "\"New Perspectives,\" Group Show, Museum of Modern Art, San Francisco, CA"
+    },
+    {
+      "year": "2021",
+      "details": "\"Material Matters,\" Biennial Exhibition, Contemporary Arts Center, Cincinnati, OH"
+    },
+    {
+      "year": "2020",
+      "details": "\"Abstraction Today,\" International Group Exhibition, Tate Modern, London, UK"
+    },
+    {
+      "year": "2019",
+      "details": "\"Form and Void,\" Solo Exhibition, David Zwirner Gallery, Los Angeles, CA"
+    }
+  ],
+  "contact": {
+    "email": "studio@jackcarden.art",
+    "message": "For inquiries about available work, exhibitions, or commissions, please use the acquisition inquiry form or contact the studio directly:"
+  }
+}
