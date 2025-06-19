@@ -1,49 +1,50 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Next.js build output
+.next/
+out/
 
-# testing
-/coverage
+# Production build
+build/
+dist/
 
-# next.js
-/.next/
-/out/
+# Dependencies
+node_modules/
 
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# Local environment files
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-
-# IDE files
+# Editor directories and files
 .idea/
 .vscode/
 *.swp
 *.swo
+*.sublime-workspace
+.DS_Store
 
-# locks
-# package-lock.json
-# yarn.lock
+# Deployment files
+jackcarden_site.zip
 
-# uploaded images that shouldn't go in version control
-# Uncomment if you want to exclude uploaded images
-# /public/images/uploads/
+# User uploaded content and data files
+# Uncomment these in production or when sharing code
+/public/uploads/*
+!/public/uploads/.gitkeep
+/public/images/gallery/*
+!/public/images/gallery/.gitkeep
+
+# Generated/deployment artifacts
+/data/gallery.json
+/data/about.json
+
+# Cache
+.cache/
+
+# Local testing scripts
+local-test.sh

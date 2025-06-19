@@ -3,6 +3,8 @@ import Head from 'next/head';
 import styles from '../../styles/Admin.module.css';
 import { useRouter } from 'next/router';
 import axios from 'axios';
+import { getApiBase, getImagePath } from '../../utils/api';
+import SafeImage from '../../components/SafeImage';
 
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -13,7 +15,7 @@ export default function Admin() {
   
   // About page data state
   const [aboutData, setAboutData] = useState({
-    artistImage: '/placeholder.jpg',
+    artistImage: getImagePath('/placeholder.jpg'),
     bio: [],
     exhibitions: [],
     contact: {
@@ -118,7 +120,7 @@ export default function Admin() {
       formData.append('image', file);
       
       console.log('Sending upload request...');
-      const response = await axios.post('/api/uploadImage', formData, {
+    const response = await axios.post(`${getApiBase()}/uploadImage`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },
@@ -135,19 +137,24 @@ export default function Admin() {
       
       if (response.data && response.data.success) {
         console.log('Upload success, response:', response.data);
-        // Make sure the path starts with a forward slash
-        const filePath = response.data.filePath.startsWith('/') ? 
-          response.data.filePath : `/${response.data.filePath}`;
-        
-        console.log('Setting uploaded image URL to:', filePath);
-        // Store the uploaded image URL separately first
-        setUploadedImageUrl(filePath);
+        // Get raw path from response
+      const rawFilePath = response.data.filePath.startsWith('/') ? 
+        response.data.filePath : `/${response.data.filePath}`;
+      
+      // Apply proper base path using our utility
+      const filePath = getImagePath(rawFilePath);
+      
+      console.log('Raw path from server:', rawFilePath);
+      console.log('Setting uploaded image URL with basePath:', filePath);
+      // Store the uploaded image URL with correct base path
+      setUploadedImageUrl(filePath);
         setMessage('Image uploaded successfully! Click "Use This Image" to apply it to this artwork.');
         
         // Debug - try to preload the image to ensure it's accessible
         const img = new Image();
         img.onload = () => console.log('Image preloaded successfully:', filePath);
         img.onerror = (err) => console.error('Failed to preload image:', filePath, err);
+        // Use the path with proper base path
         img.src = filePath;
       } else {
         throw new Error('Upload response did not indicate success');
@@ -326,7 +333,9 @@ export default function Admin() {
   const handleSaveAbout = async () => {
     try {
       setMessage('Saving about page data...');
-      const response = await axios.post('/api/saveAbout', aboutData);
+      const apiUrl = `${getApiBase()}/saveAbout`;
+      console.log('Using About API URL:', apiUrl);
+      const response = await axios.post(apiUrl, aboutData);
       
       if (response.data.success) {
         setMessage('About page data saved successfully!');
@@ -370,7 +379,7 @@ export default function Admin() {
       const formData = new FormData();
       formData.append('image', file);
       
-      const response = await axios.post('/api/uploadImage', formData, {
+      const response = await axios.post(`${getApiBase()}/uploadImage`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },
@@ -383,14 +392,26 @@ export default function Admin() {
       });
       
       if (response.data && response.data.success) {
-        // Make sure the path starts with a forward slash
-        const filePath = response.data.filePath.startsWith('/') ? 
+        // Get raw path from response
+        const rawFilePath = response.data.filePath.startsWith('/') ? 
           response.data.filePath : `/${response.data.filePath}`;
+        
+        // Apply proper base path using our utility
+        const filePath = getImagePath(rawFilePath);
+        
+        console.log('Raw about image path from server:', rawFilePath);
+        console.log('Setting about image with basePath:', filePath);
         
         setAboutData({
           ...aboutData,
           artistImage: filePath
         });
+        
+        // Add image preload test
+        const img = new Image();
+        img.onload = () => console.log('About image preloaded successfully:', filePath);
+        img.onerror = (err) => console.error('Failed to preload about image:', filePath, err);
+        img.src = filePath;
         
         setMessage('About image uploaded successfully!');
       } else {
@@ -418,7 +439,10 @@ export default function Admin() {
       // Log the gallery data being saved
       console.log('Saving gallery with artworks:', artworks);
       
-      const response = await fetch('/api/saveGallery', {
+      const apiUrl = `${getApiBase()}/saveGallery`;
+      console.log('Using API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ works: artworks }),
@@ -437,7 +461,9 @@ export default function Admin() {
       setUploadedImageUrl('');
       
       // Force a reload of the gallery page data cache
-      fetch('/api/getGallery?forceRefresh=true').catch(err => {
+      const refreshUrl = `${getApiBase()}/getGallery?forceRefresh=true`;
+      console.log('Refreshing gallery cache:', refreshUrl);
+      fetch(refreshUrl).catch(err => {
         console.error('Failed to refresh gallery cache:', err);
       });
     } catch (error) {
@@ -610,18 +636,11 @@ export default function Admin() {
                     <div className={styles.imagePreviewContainer}>
                       <h4>Uploaded Image:</h4>
                       <div className={styles.imageWrapper}>
-                        <img
+                        <SafeImage
                           src={uploadedImageUrl}
                           alt="Preview"
                           className={styles.imagePreview}
                           onLoad={() => console.log('Image preview loaded successfully')}
-                          onError={(e) => {
-                            console.error('Image preview failed to load:', uploadedImageUrl);
-                            if (e.target.src !== '/placeholder.jpg') {
-                              e.target.onerror = null;
-                              e.target.src = '/placeholder.jpg';
-                            }
-                          }}
                         />
                       </div>
                       <div className={styles.imageActions}>
@@ -660,9 +679,9 @@ export default function Admin() {
                         onLoad={() => console.log('Current artwork image loaded successfully')}
                         onError={(e) => {
                           console.error('Current image failed to load:', formData.imageUrl);
-                          if (e.target.src !== '/placeholder.jpg') {
-                            e.target.onerror = null;
-                            e.target.src = '/placeholder.jpg';
+                          if (!e.target.src.includes('placeholder.jpg')) {
+                            console.log('Image failed to load, using placeholder');
+                            e.target.src = getImagePath('/placeholder.jpg');
                           }
                         }}
                       />
@@ -761,9 +780,9 @@ export default function Admin() {
                       className={styles.artworkImage} 
                       onError={(e) => {
                         // Prevent infinite error loops
-                        if (e.target.src !== '/placeholder.jpg') {
-                          e.target.onerror = null;
-                          e.target.src = '/placeholder.jpg';
+                        if (!e.target.src.includes('placeholder.jpg')) {
+                          console.log('Image failed to load, using placeholder');
+                          e.target.src = getImagePath('/placeholder.jpg');
                         }
                       }}
                     />
@@ -813,8 +832,7 @@ export default function Admin() {
                         alt="Artist" 
                         className={styles.previewImage}
                         onError={(e) => {
-                          e.target.onerror = null; 
-                          e.target.src = '/placeholder.jpg';
+                          e.target.src = getImagePath('/placeholder.jpg');
                         }}
                       />
                     </div>

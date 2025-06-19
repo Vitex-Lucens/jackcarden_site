@@ -4,6 +4,8 @@ import styles from '../styles/Gallery.module.css';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import SiteHead from '../components/SiteHead';
+import { getImagePath, getApiBase } from '../utils/api';
+import SafeImage from '../components/SafeImage';
 
 export default function Gallery() {
   const [selectedWork, setSelectedWork] = useState(null);
@@ -13,7 +15,10 @@ export default function Gallery() {
   useEffect(() => {
     // Use a dynamic import to always get the latest version
     // This prevents Next.js from caching the import
-    fetch('/api/getGallery')
+    const apiUrl = `${getApiBase()}/getGallery`;
+    console.log('Fetching gallery data from:', apiUrl);
+    
+    fetch(apiUrl)
       .then(res => res.json())
       .then(data => {
         if (data.works) {
@@ -48,20 +53,11 @@ export default function Gallery() {
               onClick={() => setSelectedWork(work)}
             >
               <div className={styles.imageContainer}>
-                <img 
-                src={work.imageUrl} 
-                alt={work.title} 
-                className={styles.galleryImage} 
-                onLoad={() => console.log('Image loaded:', work.imageUrl)}
-                onError={(e) => {
-                  console.error('Image failed to load:', work.imageUrl, e);
-                  // Prevent infinite error loops
-                  if (e.target.src !== '/placeholder.jpg') {
-                    e.target.onerror = null;
-                    e.target.src = '/placeholder.jpg';
-                  }
-                }}
-              />
+                <SafeImage 
+                  src={work.imageUrl} 
+                  alt={work.title} 
+                  className={styles.galleryImage}
+                />
               </div>
               <h3 className={styles.workTitle}>{work.title}</h3>
               <p className={styles.workDetails}>{work.year} · {work.medium}</p>
@@ -75,17 +71,10 @@ export default function Gallery() {
           <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
             <button className={styles.closeButton} onClick={() => setSelectedWork(null)}>×</button>
             <div className={styles.modalImageContainer}>
-              <img 
+              <SafeImage 
                 src={selectedWork.imageUrl} 
                 alt={selectedWork.title} 
                 className={styles.modalImage} 
-                onError={(e) => {
-                  // Prevent infinite error loops
-                  if (e.target.src !== '/placeholder.jpg') {
-                    e.target.onerror = null;
-                    e.target.src = '/placeholder.jpg';
-                  }
-                }}
               />
             </div>
             <div className={styles.modalInfo}>

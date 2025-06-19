@@ -1,0 +1,38 @@
+RewriteEngine On
+
+# Handle 404 errors with custom page
+ErrorDocument 404 /jackcarden/404.html
+
+# Ensure PHP files in API directory are executed properly
+<FilesMatch "\.(php)$">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+
+# API directory special handling - make sure PHP files are executed
+RewriteCond %{REQUEST_URI} ^/jackcarden/api/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^api/([^/]+)$ api/$1.php [L]
+
+# Rewrite rules for clean URLs 
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.+)$ $1.html [L,QSA]
+
+# Proper MIME types
+AddType application/javascript .js
+AddType text/css .css
+
+# Cache control
+<FilesMatch "\.(jpg|jpeg|png|gif|js|css)$">
+    Header set Cache-Control "max-age=2592000, public"
+</FilesMatch>
+
+# Directory Permissions
+<Directory "/jackcarden/api">
+    Options +ExecCGI
+    AllowOverride All
+</Directory>
+
+# Debug logs for troubleshooting
+LogLevel alert rewrite:trace3
