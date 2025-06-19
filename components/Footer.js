@@ -8,11 +8,8 @@ export default function Footer() {
           © {new Date().getFullYear()} Jack Carden. All rights reserved.
         </div>
         <div className={styles.social}>
-          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
-            Instagram
-          </a>
-          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
-            Twitter
+          <a href="https://instagram.com/jackcarden.art" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
+            @jackcarden.art
           </a>
         </div>
       </div>

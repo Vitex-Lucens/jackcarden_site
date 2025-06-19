@@ -166,7 +166,18 @@ const AcquisitionModal = ({ onClose }) => {
             validationSchema={validationSchemas[currentStep]}
             onSubmit={handleSubmit}
           >
-            {({ isSubmitting }) => (
+            {({ isSubmitting, values, errors, touched }) => {
+              // Check if the current step's field has a value (is selected)
+              // This determines if the Next button should have the active style
+              const currentFieldName = steps[currentStep].fieldName;
+              const isOptionSelected = Boolean(values[currentFieldName]);
+              const isContactFormValid = currentStep === steps.length - 1 && 
+                values.firstName && 
+                values.lastName && 
+                values.email && 
+                values.consent;
+                
+              return (
               <Form>
                 <button className={styles.closeButton} onClick={closeModal}>×</button>
                 <h2 className={styles.modalHeading}>ACQUISITION INQUIRY</h2>
@@ -270,13 +281,14 @@ const AcquisitionModal = ({ onClose }) => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={styles.button}
+                    className={`${styles.button} ${(isOptionSelected || isContactFormValid) ? styles.selectedButton : ''}`}
                   >
                     {currentStep === steps.length - 1 ? 'APPLY FOR WAITLIST' : 'NEXT'}
                   </button>
                 </div>
               </Form>
-            )}
+            );
+            }}
           </Formik>
         )}
       </div>

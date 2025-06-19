@@ -20,29 +20,38 @@
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
+  font-family: Helvetica, Arial, sans-serif;
 }
 
 .closeButton {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  background: transparent;
+  top: 15px;
+  right: 15px;
+  background: none;
   border: none;
   font-size: 24px;
   cursor: pointer;
-  padding: 0;
+  opacity: 0.9;
   line-height: 1;
+  padding: 0;
+  color: #000;
 }
 
 .modalHeading {
   margin-top: 0;
   font-size: 24px;
   margin-bottom: 30px;
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.5px;
 }
 
 .stepHeading {
   font-size: 18px;
   margin-bottom: 25px;
+  font-family: Helvetica, Arial, sans-serif;
+  letter-spacing: 0.5px;
+  font-weight: 500;
 }
 
 .options {
@@ -69,6 +78,8 @@
   cursor: pointer;
   font-size: 16px;
   line-height: 1.5;
+  font-family: Helvetica, Arial, sans-serif;
+  letter-spacing: 0.3px;
 }
 
 .radioLabel::before {
@@ -78,40 +89,57 @@
   top: 0;
   width: 20px;
   height: 20px;
-  border: 1px solid #000;
+  border: 2px solid #000;
   border-radius: 50%;
 }
 
+.radioInput:checked + .radioLabel::before {
+  background-color: #000;
+  border-color: #000;
+}
+
+/* No dot indicator for selected radio buttons - just solid black background */
 .radioInput:checked + .radioLabel::after {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 5px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #000;
+  display: none;
 }
 
 .buttons {
   display: flex;
   justify-content: space-between;
   margin-top: 40px;
+  align-items: center;
 }
 
+/* Default button style - white with black text */
 .button {
-  padding: 10px 20px;
-  border: 1px solid #000;
-  background: transparent;
+  padding: 12px 25px;
+  border: 2px solid #000;
+  background-color: #fff;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.3s, color 0.3s;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  transition: background-color 0.2s, color 0.2s;
   min-width: 120px;
+  font-family: Helvetica, Arial, sans-serif;
+  text-transform: uppercase;
+  color: #000;
+  text-decoration: none;
 }
 
-.button:hover {
-  background-color: #000;
-  color: #fff;
+/* Hover state - only apply hover effect if not in selected state to maintain visual clarity */
+.button:hover:not(.selectedButton) {
+  background-color: rgba(0, 0, 0, 0.1); /* Subtle hover effect */
+}
+
+/* Button that appears when an option is selected - black with white text */
+.selectedButton {
+  background-color: #000 !important;
+  color: #fff !important;
+}
+
+.button:active {
+  transform: translateY(1px);
 }
 
 .contactForm {
@@ -133,19 +161,31 @@
 .formGroup label {
   margin-bottom: 5px;
   font-size: 12px;
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 .textInput {
   padding: 10px;
-  border: 1px solid #000;
+  border: 2px solid #000;
   width: 100%;
   font-size: 16px;
+  font-family: Helvetica, Arial, sans-serif;
+  background-color: white;
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: #000;
 }
 
 .errorMessage {
-  color: #ff0000;
+  color: #000;
   font-size: 12px;
   margin-top: 5px;
+  display: block;
+  font-weight: bold;
 }
 
 .consentContainer {
@@ -155,14 +195,32 @@
 }
 
 .checkboxInput {
+  position: relative;
   margin-top: 3px;
   margin-right: 10px;
+  width: 18px;
+  height: 18px;
+  appearance: none;
+  border: 2px solid #000;
+  background-color: white;
+  cursor: pointer;
+}
+
+.checkboxInput:checked {
+  background-color: #000;
+  border-color: #000;
+}
+
+/* No mark indicator for checked checkboxes - just solid black background */
+.checkboxInput:checked::after {
+  display: none;
 }
 
 .checkboxLabel {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
   letter-spacing: 0.5px;
+  font-family: Helvetica, Arial, sans-serif;
 }
 
 .thankYou {
@@ -178,6 +236,29 @@
   .modalContent {
     padding: 20px;
     width: 95%;
+    max-height: 85vh;
+  }
+  
+  .button,
+  .button:link,
+  .button:visited {
+    color: #000;
+    background-color: #fff;
+    text-decoration: none;
+  }
+  
+  /* Only apply hover effect to non-selected buttons */
+  .button:hover:not(.selectedButton) {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Ensure selected button has correct styling on mobile */
+  .selectedButton,
+  .selectedButton:link,
+  .selectedButton:visited,
+  .selectedButton:hover {
+    background-color: #000 !important;
+    color: #fff !important;
   }
   
   .formRow {
@@ -187,5 +268,111 @@
   
   .stepHeading {
     font-size: 16px;
+    line-height: 1.4;
   }
+  
+  .button {
+    padding: 12px 20px;
+    font-size: 14px;
+    min-width: 110px;
+    margin: 8px;
+    width: auto;
+    flex: 0 1 auto;
+  }
+  
+  .buttons {
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 30px; /* Reduced from 40px */
+  }
+  
+  .radioLabel {
+    font-size: 15px;
+    padding-left: 30px;
+    min-height: 44px; /* Better touch target */
+    display: flex;
+    align-items: center;
+  }
+  
+  .radioLabel::before {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .radioInput:checked + .radioLabel::after {
+    left: 5px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+  }
+  
+  .checkboxInput {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+  }
+  
+  .checkboxInput:checked::after {
+    left: 6px;
+    top: 2px;
+  }
+  
+  .checkboxLabel {
+    font-size: 13px;
+  }
+  
+  .consentContainer {
+    margin-top: 25px;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .textInput {
+    padding: 12px;
+    font-size: 16px;
+  }
+  
+  .closeButton {
+    top: 15px;
+    right: 15px;
+    font-size: 28px;
+    padding: 8px;
+  }
+  
+  /* Reduced spacing between options */
+  .options {
+    gap: 12px;
+  }
+  
+  .errorMessage {
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  /* Ensure all form field placeholders are black */
+  .textInput::placeholder {
+    color: #000;
+    opacity: 0.6;
+  }
+}
+
+/* Ensure black text selection across the modal */
+.modalContent,
+.modalContent input,
+.modalContent textarea {
+  caret-color: #000;
+}
+
+/* Ensure any error text or validation messages are black */
+.modalContent .errorMessage,
+.modalContent .error {
+  color: #000 !important;
+  font-weight: bold;
+}
+
+/* Ensure focus states use black outlines/borders */
+.textInput:focus,
+.button:focus {
+  outline-color: #000;
+  border-color: #000;
 }

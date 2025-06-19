@@ -20,7 +20,7 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>WEBSITE</h1>
-        <p className={styles.subtitle}>*BY JACK CARDEN</p>
+        <p className={styles.subtitle}>*by JACK CARDEN</p>
 
         <div className={styles.buttons}>
           <button 

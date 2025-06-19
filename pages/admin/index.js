@@ -15,7 +15,7 @@ export default function Admin() {
   
   // About page data state
   const [aboutData, setAboutData] = useState({
-    artistImage: getImagePath('/placeholder.jpg'),
+    artistImage: getImagePath('/images/placeholder.jpg'), // Always include /images/ prefix
     bio: [],
     exhibitions: [],
     contact: {
@@ -396,8 +396,17 @@ export default function Admin() {
         const rawFilePath = response.data.filePath.startsWith('/') ? 
           response.data.filePath : `/${response.data.filePath}`;
         
+        // Ensure the path includes /images/ prefix (convention for site images)
+        let normalizedPath = rawFilePath;
+        if (!normalizedPath.includes('/images/')) {
+          // Extract filename
+          const filename = normalizedPath.split('/').pop();
+          normalizedPath = `/images/${filename}`;
+          console.log('Normalized image path to include /images/:', normalizedPath);
+        }
+        
         // Apply proper base path using our utility
-        const filePath = getImagePath(rawFilePath);
+        const filePath = getImagePath(normalizedPath);
         
         console.log('Raw about image path from server:', rawFilePath);
         console.log('Setting about image with basePath:', filePath);

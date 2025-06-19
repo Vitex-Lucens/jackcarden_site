@@ -5,12 +5,14 @@
   padding: 1.5rem 2rem;
   border-bottom: 1px solid #eaeaea;
   width: 100%;
+  position: relative;
 }
 
 .logo {
   font-size: 1.5rem;
   font-weight: bold;
   letter-spacing: 1px;
+  z-index: 20;
 }
 
 .nav {
@@ -49,16 +51,72 @@
   font-weight: 500;
 }
 
+/* Hamburger menu styling */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 30px;
+  height: 21px;
+  cursor: pointer;
+  z-index: 20;
+}
+
+.hamburger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: #000;
+  transition: all 0.3s ease;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
 @media (max-width: 768px) {
   .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    flex-direction: row;
+    justify-content: flex-end; /* Changed to right-align elements (hamburger menu) */
     padding: 1.2rem 1.5rem;
+    border-bottom: none; /* Remove the bottom border on mobile */
+  }
+  
+  /* Hide the logo on mobile devices */
+  .logo {
+    display: none;
+  }
+  
+  .hamburger {
+    display: flex;
   }
   
   .nav {
-    width: 100%;
-    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    right: -250px;
+    width: 250px;
+    height: 100vh;
+    flex-direction: column;
+    background-color: white;
+    padding: 3.5rem 2rem 2rem; /* Reduced top padding from 5rem to 3.5rem */
+    z-index: 15;
+    gap: 2rem;
+    transition: right 0.3s ease;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .navOpen {
+    right: 0;
+  }
+  
+  .navLink {
+    font-size: 1.2rem;
   }
 }

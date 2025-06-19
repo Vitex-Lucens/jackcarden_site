@@ -4,10 +4,13 @@ import styles from '../styles/About.module.css';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import SiteHead from '../components/SiteHead';
+import SafeImage from '../components/SafeImage';
+import { getImagePath } from '../utils/api';
 
 export default function About() {
   const [aboutData, setAboutData] = useState({
-    artistImage: '/placeholder.jpg',
+    // Default to a placeholder image with proper path handling
+    artistImage: getImagePath('/images/placeholder.jpg'),
     bio: [],
     exhibitions: [],
     contact: {
@@ -15,6 +18,9 @@ export default function About() {
       message: ''
     }
   });
+  
+  // Track if the artist image is available
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     // Load about data from JSON file
@@ -37,28 +43,29 @@ export default function About() {
 
       <main className={styles.main}>
         <div className={styles.aboutContainer}>
+          {/* Image section - will be repositioned via CSS on mobile */}
           <div className={styles.imageSection}>
             <div className={styles.artistImage}>
-              {aboutData.artistImage && aboutData.artistImage !== '/placeholder.jpg' ? (
-                <img 
-                  src={aboutData.artistImage} 
-                  alt="Jack Carden" 
-                  className={styles.actualImage}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                  loading="eager"
-                  priority="true"
-                />
-              ) : null}
-              <div className={styles.imagePlaceholder} style={{display: aboutData.artistImage && aboutData.artistImage !== '/placeholder.jpg' ? 'none' : 'flex'}}>
-                Artist Photo
-              </div>
+              <SafeImage 
+                src={aboutData.artistImage} 
+                alt="Jack Carden" 
+                className={styles.actualImage}
+                style={{
+                  objectFit: 'cover',
+                  objectPosition: 'center top',
+                  width: '100%',
+                  height: '100%'
+                }}
+                onLoad={() => console.log('Artist image loaded successfully')}
+                fallbackComponent={
+                  <div className={styles.imagePlaceholder}>Artist Photo</div>
+                }
+                priority={true}
+              />
             </div>
           </div>
           
+          {/* Text section */}
           <div className={styles.textSection}>
             <h1>ABOUT JACK CARDEN</h1>
             

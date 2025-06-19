@@ -2,10 +2,10 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between; /* Changed from center to space-between for better vertical distribution */
   align-items: center;
   background-color: white;
-  padding: 2rem;
+  padding: 0; /* Removing padding as it's handled by child elements */
 }
 
 .main {
@@ -14,6 +14,9 @@
   justify-content: center;
   align-items: center;
   flex: 1;
+  width: 100%;
+  padding: 0 2rem;
+  margin: 2rem 0; /* Add vertical margin */
 }
 
 .title {
@@ -22,24 +25,33 @@
   text-align: center;
   margin-bottom: 0;
   letter-spacing: -0.05em;
+  font-family: Helvetica, Arial, sans-serif;
 }
 
 .subtitle {
   font-size: 1.2rem;
-  margin-bottom: 3rem;
+  margin-bottom: 4rem; /* Increased spacing before buttons */
+  margin-top: 0.5rem; /* Slight increase in spacing from title */
   text-align: center;
+  font-weight: bold;
+  font-family: Helvetica, Arial, sans-serif;
+  letter-spacing: 0.2px; /* Subtle letter spacing for readability */
 }
 
 .buttons {
   display: flex;
-  gap: 1.5rem;
+  gap: 2rem; /* Spacing between buttons */
+  width: 100%;
+  justify-content: center;
+  max-width: 310px; /* Aesthetically wider than the WEBSITE title */
 }
 
 .button {
-  padding: 1rem 2rem;
-  border: 1px solid #000;
+  padding: 0.9rem 0; /* Vertical padding only */
+  border: 2px solid #000;
   background: transparent;
   font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
   text-decoration: none;
@@ -47,6 +59,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-family: Helvetica, Arial, sans-serif;
+  letter-spacing: 0.5px; /* Subtle letter spacing for better readability */
+  width: 100%; /* Full width of container, ensures both buttons are same width */
+  box-sizing: border-box; /* Include border in width calculation */
 }
 
 .button:hover {
@@ -55,16 +71,32 @@
 }
 
 @media (max-width: 600px) {
+  .main {
+    margin: 1rem 0; /* Adjusted margin for mobile */
+    padding: 0 1.5rem;
+  }
+
   .title {
-    font-size: 3rem;
+    font-size: 3.2rem; /* Slightly larger than before */
+    width: 100%; /* Ensure consistent width for alignment */
+  }
+  
+  .subtitle {
+    margin-bottom: 3rem; /* Reduced spacing on mobile */
   }
   
   .buttons {
     flex-direction: column;
     width: 100%;
+    max-width: 175px; /* More accurately match the WEBSITE title width on mobile */
+    margin: 0 auto; /* Center the buttons */
+    gap: 1.5rem; /* Adjusted gap for vertical layout */
+    padding: 0; /* Remove any padding */
   }
   
   .button {
     width: 100%;
+    padding: 1rem 0; /* Adjusted padding for full-width buttons */
+    min-width: unset; /* Remove min-width on mobile */
   }
 }
