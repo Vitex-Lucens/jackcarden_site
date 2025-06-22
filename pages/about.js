@@ -5,7 +5,7 @@ import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import SiteHead from '../components/SiteHead';
 import SafeImage from '../components/SafeImage';
-import { getImagePath } from '../utils/api';
+import { getImagePath, getBasePath } from '../utils/api';
 
 export default function About() {
   const [aboutData, setAboutData] = useState({
@@ -23,13 +23,37 @@ export default function About() {
   const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
-    // Load about data from JSON file
-    try {
-      const data = require('../data/about.json');
-      setAboutData(data);
-    } catch (error) {
-      console.error('Error loading about data:', error);
-    }
+    // Load about data from JSON file dynamically
+    const fetchAboutData = async () => {
+      try {
+        // Get the correct base path for the current environment
+        const basePath = getBasePath();
+        // Create the full path to the about.json file
+        const aboutDataPath = `${basePath}/data/about.json`;
+        
+        console.log('Fetching about data from:', aboutDataPath);
+        
+        // Fetch the data with the correct path
+        const response = await fetch(aboutDataPath);
+        if (!response.ok) throw new Error(`Failed to fetch about data from ${aboutDataPath}`);
+        
+        const data = await response.json();
+        console.log('About data loaded successfully:', data);
+        setAboutData(data);
+      } catch (error) {
+        console.error('Error loading about data:', error);
+        // If fetch fails, try loading via require as fallback (for development)
+        try {
+          const fallbackData = require('../data/about.json');
+          console.log('Using fallback about data');
+          setAboutData(fallbackData);
+        } catch (fallbackError) {
+          console.error('Fallback data loading also failed:', fallbackError);
+        }
+      }
+    };
+    
+    fetchAboutData();
   }, []);
 
   return (

@@ -36,6 +36,7 @@ const AcquisitionModal = ({ onClose }) => {
       lastName: Yup.string().required('Last name is required'),
       email: Yup.string().email('Invalid email address').required('Email is required'),
       phone: Yup.string(),
+      comments: Yup.string(),
       consent: Yup.boolean().oneOf([true], 'You must consent to the privacy policy')
     }),
   ];
@@ -74,10 +75,10 @@ const AcquisitionModal = ({ onClose }) => {
       title: '4. WHICH TIER REFLECTS YOUR CURRENT COLLECTION STRATEGY?',
       fieldName: 'collectionTier',
       options: [
-        { value: 'tier1', label: '$250K — $1M+' },
-        { value: 'tier2', label: '$50K — $250K' },
-        { value: 'tier3', label: '$25K — $50K' },
-        { value: 'tier4', label: '$5K — $25K' },
+        { value: 'tier1', label: '$50K — $250K+' },
+        { value: 'tier2', label: '$25K — $50K' },
+        { value: 'tier3', label: '$5K — $25K' },
+        { value: 'tier4', label: 'Up to $5K' },
       ]
     },
     {
@@ -94,6 +95,11 @@ const AcquisitionModal = ({ onClose }) => {
       title: '6. CONTACT INFORMATION',
       fieldName: 'contactInfo',
       isContactForm: true
+    },
+    {
+      title: '',
+      fieldName: 'finalStep',
+      isFinalStep: true
     }
   ];
 
@@ -144,7 +150,7 @@ const AcquisitionModal = ({ onClose }) => {
           <div className={styles.thankYou}>
             <button className={styles.closeButton} onClick={closeModal}>×</button>
             <h2 className={styles.modalHeading}>THANK YOU FOR YOUR INTEREST</h2>
-            <p>YOUR INQUIRY HAS BEEN SUBMITTED. WE'LL BE IN TOUCH SOON.</p>
+            <p>DUE TO HIGH DEMAND, EACH APPLICANT IS CONSIDERED CAREFULLY. WE'LL BE IN TOUCH IF WE FEEL IT'S THE RIGHT FIT.</p>
           </div>
         ) : (
           <Formik
@@ -180,11 +186,17 @@ const AcquisitionModal = ({ onClose }) => {
               return (
               <Form>
                 <button className={styles.closeButton} onClick={closeModal}>×</button>
-                <h2 className={styles.modalHeading}>ACQUISITION INQUIRY</h2>
+                {!steps[currentStep].isFinalStep && (
+                  <h2 className={styles.modalHeading}>ACQUISITION INQUIRY</h2>
+                )}
                 <div className={styles.step}>
-                  <h3 className={styles.stepHeading}>{steps[currentStep].title}</h3>
+                  {!steps[currentStep].isFinalStep && (
+                    <h3 className={styles.stepHeading}>{steps[currentStep].title}</h3>
+                  )}
                   
-                  {!steps[currentStep].isContactForm ? (
+                  {steps[currentStep].isFinalStep ? (
+                    <div style={{ height: '100px' }}></div>
+                  ) : !steps[currentStep].isContactForm ? (
                     <div className={styles.options}>
                       {steps[currentStep].options.map((option, index) => (
                         <div key={index} className={styles.optionContainer}>
@@ -251,6 +263,16 @@ const AcquisitionModal = ({ onClose }) => {
                         </div>
                       </div>
                       <div className={styles.formGroup}>
+                        <label htmlFor="comments">ANYTHING YOU WISH TO ADD (optional)</label>
+                        <Field 
+                          as="textarea" 
+                          name="comments" 
+                          id="comments" 
+                          className={styles.textInput}
+                          style={{ minHeight: '80px', resize: 'vertical' }}
+                        />
+                      </div>
+                      <div className={styles.formGroup}>
                         <div className={styles.consentContainer}>
                           <Field
                             type="checkbox"
@@ -268,8 +290,8 @@ const AcquisitionModal = ({ onClose }) => {
                   )}
                 </div>
 
-                <div className={styles.buttons}>
-                  {currentStep > 0 && (
+                <div className={`${styles.buttons} ${steps[currentStep].isFinalStep ? styles.finalStepButtons : ''}`}>
+                  {currentStep > 0 && !steps[currentStep].isFinalStep && (
                     <button
                       type="button"
                       onClick={handlePrevious}
@@ -281,9 +303,9 @@ const AcquisitionModal = ({ onClose }) => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`${styles.button} ${(isOptionSelected || isContactFormValid) ? styles.selectedButton : ''}`}
+                    className={`${styles.button} ${(isOptionSelected || isContactFormValid) ? styles.selectedButton : ''} ${steps[currentStep].isFinalStep ? styles.completeButton : ''}`}
                   >
-                    {currentStep === steps.length - 1 ? 'APPLY FOR WAITLIST' : 'NEXT'}
+                    {steps[currentStep].isFinalStep ? 'COMPLETE' : 'NEXT'}
                   </button>
                 </div>
               </Form>

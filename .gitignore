@@ -39,10 +39,6 @@ jackcarden_site.zip
 /public/images/gallery/*
 !/public/images/gallery/.gitkeep
 
-# Generated/deployment artifacts
-/data/gallery.json
-/data/about.json
-
 # Cache
 .cache/
 

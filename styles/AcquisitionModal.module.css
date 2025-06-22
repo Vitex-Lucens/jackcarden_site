@@ -376,3 +376,26 @@
   outline-color: #000;
   border-color: #000;
 }
+
+/* Final step button styling */
+.finalStepButtons {
+  justify-content: center;
+  margin-top: 60px;
+}
+
+.completeButton {
+  min-width: 160px;
+  padding: 15px 30px;
+  font-size: 16px;
+}
+
+@media (max-width: 600px) {
+  .finalStepButtons {
+    margin-top: 50px;
+  }
+  
+  .completeButton {
+    min-width: 140px;
+    padding: 14px 25px;
+  }
+}

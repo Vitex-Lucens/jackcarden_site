@@ -137,25 +137,31 @@ export default function Admin() {
       
       if (response.data && response.data.success) {
         console.log('Upload success, response:', response.data);
-        // Get raw path from response
-      const rawFilePath = response.data.filePath.startsWith('/') ? 
-        response.data.filePath : `/${response.data.filePath}`;
-      
-      // Apply proper base path using our utility
-      const filePath = getImagePath(rawFilePath);
-      
-      console.log('Raw path from server:', rawFilePath);
-      console.log('Setting uploaded image URL with basePath:', filePath);
-      // Store the uploaded image URL with correct base path
-      setUploadedImageUrl(filePath);
-        setMessage('Image uploaded successfully! Click "Use This Image" to apply it to this artwork.');
+        
+        // Get raw path from response (e.g., "/images/work-abc123.jpg")
+        const rawFilePath = response.data.filePath.startsWith('/') ? 
+          response.data.filePath : `/${response.data.filePath}`;
+        
+        // Store both the raw path and the full path with basePath
+        // The raw path is what we'll save to the artwork object
+        console.log('Raw path from server:', rawFilePath);
+        
+        // This is just for preview purposes
+        const displayPath = getImagePath(rawFilePath);
+        console.log('Display path with basePath:', displayPath);
+        
+        // Important: Store the RAW path without basePath in the uploadedImageUrl
+        // This ensures it will work with getImagePath() later when needed
+        setUploadedImageUrl(rawFilePath);
+        console.log('Set uploadedImageUrl to raw path:', rawFilePath);
+        setMessage('Image uploaded successfully! Click "Apply To Artwork" to use this image for the artwork.');
         
         // Debug - try to preload the image to ensure it's accessible
         const img = new Image();
-        img.onload = () => console.log('Image preloaded successfully:', filePath);
-        img.onerror = (err) => console.error('Failed to preload image:', filePath, err);
-        // Use the path with proper base path
-        img.src = filePath;
+        img.onload = () => console.log('Image preloaded successfully:', displayPath);
+        img.onerror = (err) => console.error('Failed to preload image:', displayPath, err);
+        // Use the display path with proper base path for preview
+        img.src = displayPath;
       } else {
         throw new Error('Upload response did not indicate success');
       }
@@ -643,13 +649,11 @@ export default function Admin() {
                 <div className={styles.uploadPreviewSection}>
                   {uploadedImageUrl ? (
                     <div className={styles.imagePreviewContainer}>
-                      <h4>Uploaded Image:</h4>
                       <div className={styles.imageWrapper}>
                         <SafeImage
-                          src={uploadedImageUrl}
-                          alt="Preview"
+                          src={uploadedImageUrl} /* SafeImage already applies getImagePath() internally */
+                          alt="Uploaded image preview"
                           className={styles.imagePreview}
-                          onLoad={() => console.log('Image preview loaded successfully')}
                         />
                       </div>
                       <div className={styles.imageActions}>
@@ -657,8 +661,9 @@ export default function Admin() {
                           type="button"
                           onClick={applyUploadedImage}
                           className={styles.useImageButton}
+                          title="Apply this image to the current artwork form"
                         >
-                          Use This Image
+                          Apply To Artwork
                         </button>
                         <button
                           type="button"
@@ -681,18 +686,10 @@ export default function Admin() {
                   <div className={styles.currentImageContainer}>
                     <h4>Current Artwork Image:</h4>
                     <div className={styles.imageWrapper}>
-                      <img
+                      <SafeImage
                         src={formData.imageUrl}
                         alt="Current artwork"
                         className={styles.imagePreview}
-                        onLoad={() => console.log('Current artwork image loaded successfully')}
-                        onError={(e) => {
-                          console.error('Current image failed to load:', formData.imageUrl);
-                          if (!e.target.src.includes('placeholder.jpg')) {
-                            console.log('Image failed to load, using placeholder');
-                            e.target.src = getImagePath('/placeholder.jpg');
-                          }
-                        }}
                       />
                     </div>
                   </div>
@@ -783,17 +780,10 @@ export default function Admin() {
               <div key={artwork.id} className={styles.artworkCard}>
                 <div className={styles.artworkImageContainer}>
                   {artwork.imageUrl ? (
-                    <img 
+                    <SafeImage 
                       src={artwork.imageUrl} 
                       alt={artwork.title} 
                       className={styles.artworkImage} 
-                      onError={(e) => {
-                        // Prevent infinite error loops
-                        if (!e.target.src.includes('placeholder.jpg')) {
-                          console.log('Image failed to load, using placeholder');
-                          e.target.src = getImagePath('/placeholder.jpg');
-                        }
-                      }}
                     />
                   ) : (
                     <div className={styles.placeholderImage}>No Image</div>
@@ -836,7 +826,7 @@ export default function Admin() {
                 <div className={styles.imageUploadContainer}>
                   {aboutData.artistImage && (
                     <div className={styles.previewContainer}>
-                      <img 
+                      <SafeImage 
                         src={aboutData.artistImage} 
                         alt="Artist" 
                         className={styles.previewImage}

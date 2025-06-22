@@ -1,68 +1,83 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getImagePath } from '../utils/api';
 
 /**
- * SafeImage component to handle image paths correctly across environments
- * Automatically applies correct base paths in production/development
- * and provides graceful fallback for missing images
+ * SafeImage component with advanced multi-level fallback system
+ * Handles image paths correctly across environments and tries multiple
+ * placeholder paths when the primary image fails to load
  */
 export default function SafeImage({ src, alt, className, onLoad, style, width, height, fallbackComponent }) {
-  const [error, setError] = useState(false);
+  // Track the current image we're trying to display
+  const [currentSrc, setCurrentSrc] = useState('');
+  // Track if the image has successfully loaded
   const [isLoaded, setIsLoaded] = useState(false);
+  // Track the fallback attempt index
+  const [fallbackIndex, setFallbackIndex] = useState(-1);
   
-  // Local development helper for debugging image paths
-  const isDev = typeof window !== 'undefined' && 
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-  
-  // Use SVG placeholder which will work in all environments
-  // Ensure placeholder path always includes /images/ prefix
-  const placeholderUrl = getImagePath('/images/placeholder.svg');
-  // Backup placeholders in case the primary one fails
+  // Define all possible fallback image paths
   const fallbackUrls = [
-    getImagePath('/images/placeholder.svg'),
-    getImagePath('/images/placeholder.jpg'),
-    getImagePath('/placeholder.svg'),
-    getImagePath('/placeholder.jpg')
+    // Try paths with /jackcarden/ prefix first (production)
+    '/jackcarden/images/placeholder.svg',
+    '/jackcarden/images/placeholder.jpg',
+    '/jackcarden/placeholder.svg',
+    '/jackcarden/placeholder.jpg',
+    // Then try paths without the prefix (dev and alternative locations)
+    '/images/placeholder.svg',
+    '/images/placeholder.jpg',
+    '/placeholder.svg',
+    '/placeholder.jpg',
+    // Last resort - an inline SVG data URL
+    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjYWFhIj5JbWFnZTwvdGV4dD48L3N2Zz4='
   ];
   
-  // Process the image source URL
-  let processedSrc;
-  
-  if (error) {
-    // If there was an error loading the image, use placeholder
-    processedSrc = placeholderUrl;
-    // If we're using fallbacks because of errors, log it
-    if (isDev) {
-      console.log(`SafeImage: Using fallback for ${src}`);
+  // Process the source on component mount and when src changes
+  useEffect(() => {
+    if (!src) {
+      // If no source provided, start with first fallback
+      setFallbackIndex(0);
+      setCurrentSrc(fallbackUrls[0]);
+    } else if (src.startsWith('http') || src.startsWith('data:')) {
+      // If it's already an absolute URL or data URL, use as is
+      setFallbackIndex(-1); // -1 indicates we're using the primary source
+      setCurrentSrc(src);
+    } else {
+      // Otherwise apply the correct base path using getImagePath
+      setFallbackIndex(-1);
+      setCurrentSrc(getImagePath(src));
     }
-  } else if (!src) {
-    // If no source provided, use placeholder
-    processedSrc = placeholderUrl;
-  } else if (src.startsWith('http')) {
-    // If it's already an absolute URL, use as is
-    processedSrc = src;
-  } else {
-    // Otherwise apply the correct base path
-    processedSrc = getImagePath(src);
-  }
-  
-  if (isDev) {
-    if (!isLoaded && !error) {
-      console.log(`SafeImage: Loading ${src} → ${processedSrc}`);
-    }
-    
-    // Add more debug info about the environment
-    console.log(`SafeImage: Environment - ${typeof window !== 'undefined' ? window.location.hostname : 'server'}, ${processedSrc.includes('/jackcarden/') ? 'Production path' : 'Development path'}`);
-  }
+  }, [src]);
 
-  // If custom fallback component provided and we have an error, use that
-  if (error && fallbackComponent) {
+  // Handle successful image load
+  const handleImageLoad = (e) => {
+    setIsLoaded(true);
+    if (onLoad) onLoad(e);
+  };
+
+  // Handle image load error with cascade fallback
+  const handleImageError = () => {
+    const nextIndex = fallbackIndex + 1;
+    
+    // If we have more fallbacks to try
+    if (nextIndex < fallbackUrls.length) {
+      // Try next fallback
+      console.log(`Image failed to load: ${currentSrc}\nTrying fallback #${nextIndex + 1}`);
+      setFallbackIndex(nextIndex);
+      setCurrentSrc(fallbackUrls[nextIndex]);
+    } else {
+      // We've exhausted all fallbacks - show inline SVG as last resort
+      console.error(`All image fallbacks failed for: ${src}`);
+    }
+  };
+  
+  // If custom fallback component provided and we've exhausted all fallbacks, use custom component
+  if (fallbackIndex >= fallbackUrls.length - 1 && fallbackComponent) {
     return fallbackComponent;
   }
-
+  
+  // Return the image with proper handlers
   return (
     <img
-      src={processedSrc}
+      src={currentSrc}
       alt={alt || 'Image'}
       className={className}
       style={{
@@ -73,18 +88,8 @@ export default function SafeImage({ src, alt, className, onLoad, style, width, h
       }}
       width={width}
       height={height}
-      onLoad={(e) => {
-        setIsLoaded(true);
-        if (onLoad) onLoad(e);
-      }}
-      onError={(e) => {
-        // Only log the error once
-        if (!error) {
-          console.error(`Image failed to load: ${src}`);
-          console.log(`Falling back to ${fallbackComponent ? 'custom component' : 'placeholder'}`);
-          setError(true);
-        }
-      }}
+      onLoad={handleImageLoad}
+      onError={handleImageError}
     />
   );
 }
