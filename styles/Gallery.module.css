@@ -96,46 +96,65 @@
 
 .galleryGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 3rem 2rem;
+  margin-bottom: 4rem;
 }
 
 .galleryItem {
   cursor: pointer;
-  transition: transform 0.3s;
+  transition: all 0.25s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .galleryItem:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
 }
 
 .imageContainer {
-  aspect-ratio: 3/4;
+  position: relative;
+  width: 100%;
   overflow: hidden;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .galleryImage {
   width: 100%;
-  height: 100%;
+  max-height: 400px;
   object-fit: contain;
-  background-color: #f8f8f8;
-  transition: transform 0.5s;
+  background-color: #ffffff;
+  transition: opacity 0.5s ease;
+  padding: 8px;
+  opacity: 0;
+}
+
+.imageLoaded {
+  opacity: 1;
 }
 
 .galleryItem:hover .galleryImage {
-  transform: scale(1.05);
+  opacity: 0.92;
 }
 
 .workTitle {
-  margin: 0.5rem 0;
-  font-size: 1.1rem;
+  margin: 0.25rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
 }
 
 .workDetails {
   margin: 0;
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 0.85rem;
+  color: #333;
+  letter-spacing: 0.01em;
 }
 
 .modalOverlay {
@@ -144,52 +163,75 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.9);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: fadeIn 0.3s ease;
 }
 
 .modalContent {
   background-color: white;
   width: 90%;
-  max-width: 1000px;
+  max-width: 1100px;
   max-height: 90vh;
   overflow-y: auto;
   display: flex;
   position: relative;
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.4s ease;
 }
 
 .closeButton {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 1.25rem;
+  right: 1.25rem;
   background: transparent;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   cursor: pointer;
   z-index: 1;
   color: #fff;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.closeButton:hover {
+  transform: scale(1.1);
 }
 
 .modalImageContainer {
   flex: 1;
-  background-color: #f5f5f5;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  border-right: 1px solid #efefef;
 }
 
 .modalImage {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  background-color: #f8f8f8;
+  background-color: #ffffff;
+  padding: 20px;
+  max-height: 85vh;
 }
 
 .modalInfo {
-  flex: 0 0 300px;
-  padding: 2rem;
+  flex: 0 0 350px;
+  padding: 2.5rem;
   display: flex;
   flex-direction: column;
+  background-color: white;
 }
 
 .modalInfo h2 {
@@ -246,23 +288,53 @@
   font-size: 0.9rem;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 @media (max-width: 768px) {
+  .main {
+    padding: 1.5rem;
+  }
+  
+  .galleryGrid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 2rem 1.5rem;
+  }
+  
   .modalContent {
     flex-direction: column;
+    width: 95%;
+    max-height: 95vh;
   }
   
   .modalImageContainer {
-    height: 50vh;
+    height: 45vh;
+    min-height: auto;
+    border-right: none;
+    border-bottom: 1px solid #efefef;
+  }
+  
+  .modalImage {
+    padding: 15px;
   }
   
   .modalInfo {
     flex: 0;
+    padding: 1.75rem;
   }
   
   .galleryHeader {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+    margin-bottom: 1.5rem;
   }
   
   .header {
@@ -274,5 +346,25 @@
   .nav {
     width: 100%;
     justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .galleryGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+    gap: 2.5rem 1rem;
+  }
+  
+  .imageContainer {
+    max-height: 350px;
+  }
+  
+  .modalInfo {
+    padding: 1.5rem;
+  }
+  
+  .closeButton {
+    top: 1rem;
+    right: 1rem;
   }
 }

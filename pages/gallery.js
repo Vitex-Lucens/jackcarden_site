@@ -57,6 +57,7 @@ export default function Gallery() {
                   src={work.imageUrl} 
                   alt={work.title} 
                   className={styles.galleryImage}
+                  onLoad={(e) => e.target.classList.add(styles.imageLoaded)}
                 />
               </div>
               <h3 className={styles.workTitle}>{work.title}</h3>
