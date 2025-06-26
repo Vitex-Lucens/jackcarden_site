@@ -26,10 +26,8 @@ export default function About() {
     // Load about data from JSON file dynamically
     const fetchAboutData = async () => {
       try {
-        // Get the correct base path for the current environment
-        const basePath = getBasePath();
-        // Create the full path to the about.json file
-        const aboutDataPath = `${basePath}/data/about.json`;
+        // Now that we're on the root domain, path is just /data/about.json
+        const aboutDataPath = '/data/about.json';
         
         console.log('Fetching about data from:', aboutDataPath);
         

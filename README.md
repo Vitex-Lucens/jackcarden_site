@@ -16,7 +16,7 @@ A minimalist, elegant website for artist Jack Carden featuring:
 - **Responsive Design**: Fully responsive layout optimized for all device sizes, including mobile-optimized navigation
 - **SEO Ready**: Optimized metadata and structured content
 - **Hybrid Deployment**: Compatible with both Next.js development and traditional cPanel hosting
-- **SafeImage Component**: Cross-environment image path resolution for consistent display
+- **SafeImage Component**: Cross-environment image path resolution for consistent display across root domain and development environments
 
 ## Technology Stack
 
@@ -24,7 +24,7 @@ A minimalist, elegant website for artist Jack Carden featuring:
 - **Backend**: PHP API endpoints for production (cPanel compatibility)
 - **Styling**: CSS Modules with responsive design
 - **Data Storage**: JSON files for content, PHP for API handling
-- **Deployment**: Static export to GreenGeeks cPanel hosting
+- **Deployment**: Static export to root domain on cPanel hosting
 
 ## Deployment Setup
 
@@ -34,10 +34,14 @@ A minimalist, elegant website for artist Jack Carden featuring:
 // next.config.js
 module.exports = {
   output: 'export',  // Creates static export for cPanel hosting
-  basePath: process.env.NODE_ENV === 'production' ? '/jackcarden' : '',
+  // Root domain deployment - no basePath needed
   // other config options...
 }
 ```
+
+### Domain Configuration
+
+The site is configured for deployment to the root domain (jackcarden.art) rather than a subdirectory. This means all API endpoints, images, and assets are served from root paths (e.g., '/api/' instead of '/jackcarden/api/').
 
 ### PHP API Integration
 

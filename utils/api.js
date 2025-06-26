@@ -8,7 +8,7 @@
 if (typeof window !== 'undefined' && !window.API_CONFIG) {
   console.warn('API_CONFIG not found, creating default configuration');
   window.API_CONFIG = {
-    apiBase: '/jackcarden/api',
+    apiBase: '/api',
     isStaticDeploy: true,
     createdAt: new Date().toISOString(),
     isDefaultConfig: true
@@ -20,28 +20,21 @@ const isStaticExport = typeof window !== 'undefined' &&
   (window.location.hostname !== 'localhost' && 
    window.location.hostname !== '127.0.0.1');
 
-// Get the base path for URLs (empty in development, /jackcarden in production)
+// Get the base path for URLs (always empty now that we're on root domain)
 export const getBasePath = () => {
-  // Check if we're in the browser
-  if (typeof window !== 'undefined') {
-    // Check hostname to determine if we need a subpath
-    const hostname = window.location.hostname;
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return '/jackcarden';
-    }
-  }
+  // No subdirectory needed anymore as site is at root domain
   return '';
 };
 
 // Get the correct path for images accounting for basePath
 export const getImagePath = (imagePath) => {
-  // If the path already includes the base path or is an absolute URL, return as is
-  if (imagePath.startsWith('http') || imagePath.startsWith('/jackcarden/')) {
+  // If the path is an absolute URL, return as is
+  if (imagePath.startsWith('http')) {
     return imagePath;
   }
   
-  // Otherwise, prepend the base path
-  return `${getBasePath()}${imagePath}`;
+  // Now that we're on root domain, just ensure the path starts with /
+  return imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
 };
 
 // Get the base URL for API calls
@@ -67,11 +60,11 @@ export const getApiBase = () => {
     
     // Check if we're in the browser
     if (typeof window !== 'undefined') {
-      // In production environment (not localhost)
+      // In production environment (not localhost) - now using standard /api path
       const hostname = window.location.hostname;
       if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        console.log('PRODUCTION MODE: Using base path: /jackcarden/api');
-        return '/jackcarden/api';
+        console.log('PRODUCTION MODE: Using base path: /api');
+        return '/api';
       } else {
         // In development
         console.log('DEVELOPMENT MODE: Using base path: /api');

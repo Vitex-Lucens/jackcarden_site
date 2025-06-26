@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build-prod": "next build && cp -r php_api/ out/api/ && cp .htaccess out/ && cp -r data/ out/data/ && mkdir -p out/jackcarden/images && mkdir -p out/images && cp public/images/placeholder.svg out/images/ && cp public/images/placeholder.jpg out/images/ && cp public/images/placeholder.svg out/jackcarden/images/ && cp public/images/placeholder.jpg out/jackcarden/images/ && cp public/images/placeholder.svg out/jackcarden/ && cp public/images/placeholder.jpg out/jackcarden/",
+    "build-prod": "next build && cp -r php_api/ out/api/ && cp .htaccess out/ && cp -r data/ out/data/ && mkdir -p out/images && cp public/images/placeholder.svg out/images/ && cp public/images/placeholder.jpg out/images/ && cp public/images/placeholder.svg out/ && cp public/images/placeholder.jpg out/",
     "build-prod-zip": "npm run build-prod && cd out && zip -r ../jackcarden_site.zip .",
     "start": "next start",
     "lint": "next lint"

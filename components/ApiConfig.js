@@ -4,10 +4,8 @@ import { useRouter } from 'next/router';
 export default function ApiConfig() {
   const router = useRouter();
   
-  // In production, we know the base path is '/jackcarden'
-  // In development, it's empty
-  const isProduction = process.env.NODE_ENV === 'production';
-  const basePath = isProduction ? '/jackcarden' : '';
+  // Now that we're on the root domain, basePath is always empty
+  const basePath = '';
   
   // Add script with debugging info
   return (

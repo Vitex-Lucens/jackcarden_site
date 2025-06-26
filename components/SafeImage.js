@@ -16,12 +16,7 @@ export default function SafeImage({ src, alt, className, onLoad, style, width, h
   
   // Define all possible fallback image paths
   const fallbackUrls = [
-    // Try paths with /jackcarden/ prefix first (production)
-    '/jackcarden/images/placeholder.svg',
-    '/jackcarden/images/placeholder.jpg',
-    '/jackcarden/placeholder.svg',
-    '/jackcarden/placeholder.jpg',
-    // Then try paths without the prefix (dev and alternative locations)
+    // Now all paths are at the root domain
     '/images/placeholder.svg',
     '/images/placeholder.jpg',
     '/placeholder.svg',

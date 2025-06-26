@@ -44,24 +44,63 @@ export default function Admin() {
   // Loading data when logged in
   useEffect(() => {
     if (isLoggedIn) {
-      // Load gallery data
-      try {
-        // In production, we'd fetch this from an API
-        const gallery = require('../../data/gallery.json');
-        setArtworks(gallery.works);
-      } catch (error) {
-        setMessage('Error loading gallery data');
-      }
-      
-      // Load about page data
-      try {
-        const about = require('../../data/about.json');
-        setAboutData(about);
-      } catch (error) {
-        console.error('Error loading about data:', error);
-      }
+      // Load gallery and about data from API
+      loadAdminData();
     }
   }, [isLoggedIn]);
+  
+  // Function to load all admin data from API endpoints
+  const loadAdminData = async () => {
+    setMessage('Loading data...');
+    
+    // Load gallery data
+    try {
+      const galleryResponse = await fetch(`${getApiBase()}/getGallery`);
+      if (!galleryResponse.ok) {
+        throw new Error(`Failed to fetch gallery data (${galleryResponse.status})`);
+      }
+      const galleryData = await galleryResponse.json();
+      console.log('Gallery data loaded:', galleryData);
+      if (galleryData && galleryData.works) {
+        setArtworks(galleryData.works);
+      } else {
+        console.warn('Gallery data format unexpected:', galleryData);
+        setArtworks([]);
+      }
+    } catch (error) {
+      console.error('Error loading gallery data:', error);
+      setMessage('Error loading gallery data: ' + error.message);
+    }
+    
+    // Load about page data
+    try {
+      // Use the API endpoint to get about data
+      const aboutResponse = await fetch(`${getApiBase()}/getAbout`);
+      if (!aboutResponse.ok) {
+        throw new Error(`Failed to fetch about data (${aboutResponse.status})`);
+      }
+      const aboutData = await aboutResponse.json();
+      console.log('About data loaded:', aboutData);
+      
+      // Ensure all required fields exist in the about data
+      const processedAboutData = {
+        artistImage: aboutData.artistImage || getImagePath('/images/placeholder.jpg'),
+        bio: Array.isArray(aboutData.bio) ? aboutData.bio : [],
+        exhibitions: Array.isArray(aboutData.exhibitions) ? aboutData.exhibitions : [],
+        contact: {
+          email: aboutData.contact?.email || '',
+          message: aboutData.contact?.message || ''
+        }
+      };
+      
+      setAboutData(processedAboutData);
+    } catch (error) {
+      console.error('Error loading about data:', error);
+      setMessage('Error loading about data: ' + error.message);
+    }
+    
+    setMessage('');
+  };
 
   const handleLogin = (e) => {
     e.preventDefault();

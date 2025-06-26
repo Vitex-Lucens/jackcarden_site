@@ -2,9 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'export',
-  basePath: '/jackcarden',
+  // No basePath needed for root domain
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'jackcarden.art'],
     unoptimized: true, // Don't optimize uploaded images
   },
 

@@ -6,8 +6,8 @@ function MyApp({ Component, pageProps }) {
   const apiConfig = `
     // API configuration for static deployment
     window.API_CONFIG = {
-      // Base URL for API requests
-      apiBase: '/jackcarden/api',
+      // Base URL for API requests - now at root domain
+      apiBase: '/api',
       
       // Environment flag
       isStaticDeploy: true,
