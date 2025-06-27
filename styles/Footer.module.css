@@ -13,8 +13,29 @@
   align-items: center;
 }
 
+.copyrightContainer {
+  display: flex;
+  flex-direction: column;
+}
+
 .copyright {
   font-size: 0.9rem;
+}
+
+.recaptchaNotice {
+  font-size: 0.7rem;
+  margin-top: 0.5rem;
+  color: #666;
+}
+
+.recaptchaNotice a {
+  color: #666;
+  text-decoration: underline;
+  transition: opacity 0.3s;
+}
+
+.recaptchaNotice a:hover {
+  opacity: 0.7;
 }
 
 .social {
@@ -57,6 +78,12 @@
     flex-direction: column-reverse; /* Reverse order so social appears on top */
     gap: 1rem;
     text-align: center;
+  }
+  
+  .copyrightContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   
   .social {

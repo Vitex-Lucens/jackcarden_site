@@ -171,16 +171,40 @@ const AcquisitionModal = ({ onClose }) => {
           return;
         }
         
+        // Format the form data for submission
+        const formattedData = {
+          // Contact information
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          phone: values.phone || '',
+          message: values.comments || '',
+          
+          // Form data as structured information
+          formData: {
+            collectionExperience: values.collectionExperience,
+            inquiryType: values.inquiryType,
+            acquisitionGoals: values.acquisitionGoals,
+            collectionTier: values.collectionTier,
+            inquiryRoles: values.inquiryRoles
+          },
+          
+          // Add form metadata
+          submittedAt: new Date().toISOString(),
+          consentGiven: values.consent,
+          source: 'website_acquisition_form'
+        };
+        
         // Get reCAPTCHA token
         const token = await executeRecaptcha();
         
         // Get the API base path
         const apiBase = getApiBase();
-        console.log('Submitting form data:', values);
+        console.log('Submitting form data:', formattedData);
         
         // Submit the data to the API with reCAPTCHA token
         const response = await axios.post(`${apiBase}/submitInquiry`, {
-          ...values,
+          ...formattedData,
           recaptchaToken: token
         });
         
@@ -238,11 +262,6 @@ const AcquisitionModal = ({ onClose }) => {
             <p>
               DUE TO HIGH DEMAND, EACH APPLICANT IS CONSIDERED CAREFULLY. WE'LL BE IN TOUCH IF WE FEEL IT'S THE RIGHT FIT.
             </p>
-            <div style={{fontSize: '10px', marginTop: '20px', color: '#888', fontFamily: 'Helvetica, Arial, sans-serif'}}>
-              This site is protected by reCAPTCHA and the Google
-              <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style={{color: '#666', marginLeft: '3px'}}>Privacy Policy</a> and
-              <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" style={{color: '#666', marginLeft: '3px'}}>Terms of Service</a> apply.
-            </div>
           </div>
         ) : (
           <Formik
@@ -372,6 +391,9 @@ const AcquisitionModal = ({ onClose }) => {
                             </label>
                           </div>
                           <ErrorMessage name="consent" component="div" className={styles.errorMessage} />
+                          <div className={styles.recaptchaDisclosure}>
+                            This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> apply.
+                          </div>
                         </div>
                       </div>
                     ) : (

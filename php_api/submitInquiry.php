@@ -31,6 +31,9 @@ try {
         exit;
     }
     
+    // Log the received data for debugging
+    error_log('Form submission data: ' . print_r($data, true));
+    
     // You'll need to configure these values with your actual SendinBlue/Brevo API key
     $apiKey = getenv('SENDINBLUE_API_KEY');
     
@@ -38,14 +41,44 @@ try {
     if ($apiKey) {
         $url = 'https://api.sendinblue.com/v3/contacts';
         
+        // Create additional attributes from form data
+        $additionalAttributes = [];
+        
+        // Add form data fields if they exist
+        if (isset($data['formData'])) {
+            if (isset($data['formData']['collectionExperience'])) {
+                $additionalAttributes['COLLECTION_EXPERIENCE'] = $data['formData']['collectionExperience'];
+            }
+            
+            if (isset($data['formData']['inquiryType'])) {
+                $additionalAttributes['INQUIRY_TYPE'] = $data['formData']['inquiryType'];
+            }
+            
+            if (isset($data['formData']['collectionTier'])) {
+                $additionalAttributes['COLLECTION_TIER'] = $data['formData']['collectionTier'];
+            }
+            
+            // Handle array fields
+            if (isset($data['formData']['acquisitionGoals']) && is_array($data['formData']['acquisitionGoals'])) {
+                $additionalAttributes['ACQUISITION_GOALS'] = implode(', ', $data['formData']['acquisitionGoals']);
+            }
+            
+            if (isset($data['formData']['inquiryRoles']) && is_array($data['formData']['inquiryRoles'])) {
+                $additionalAttributes['INQUIRY_ROLES'] = implode(', ', $data['formData']['inquiryRoles']);
+            }
+        }
+        
+        // Format for SendinBlue/Brevo
         $payload = [
             'email' => $data['email'],
-            'attributes' => [
+            'attributes' => array_merge([
                 'FIRSTNAME' => $data['firstName'],
                 'LASTNAME' => $data['lastName'],
                 'PHONE' => $data['phone'] ?? '',
-                'MESSAGE' => $data['message'] ?? ''
-            ],
+                'MESSAGE' => $data['message'] ?? '',
+                'SOURCE' => $data['source'] ?? 'website_acquisition_form',
+                'CONSENT' => isset($data['consentGiven']) && $data['consentGiven'] ? 'Yes' : 'No',
+            ], $additionalAttributes),
             'listIds' => [2], // Update this with your actual list ID
             'updateEnabled' => true
         ];
@@ -84,9 +117,29 @@ try {
             $inquiries = ['inquiries' => []];
         }
         
-        // Add new inquiry with timestamp
-        $data['timestamp'] = date('Y-m-d H:i:s');
-        $inquiries['inquiries'][] = $data;
+        // Add new inquiry with timestamp if not already set
+        if (!isset($data['submittedAt'])) {
+            $data['submittedAt'] = date('Y-m-d H:i:s');
+        }
+        
+        // Clean up the data structure for storage
+        $storageData = [
+            'firstName' => $data['firstName'],
+            'lastName' => $data['lastName'],
+            'email' => $data['email'],
+            'phone' => $data['phone'] ?? '',
+            'message' => $data['message'] ?? '',
+            'submittedAt' => $data['submittedAt'],
+            'consentGiven' => isset($data['consentGiven']) ? (bool)$data['consentGiven'] : false,
+            'source' => $data['source'] ?? 'website_acquisition_form'
+        ];
+        
+        // Add form data if it exists
+        if (isset($data['formData']) && is_array($data['formData'])) {
+            $storageData['formData'] = $data['formData'];
+        }
+        
+        $inquiries['inquiries'][] = $storageData;
         
         // Ensure data directory exists
         $dataDir = dirname(__DIR__) . '/data';
@@ -107,12 +160,38 @@ try {
         $message = "Name: {$data['firstName']} {$data['lastName']}\n";
         $message .= "Email: {$data['email']}\n";
         
-        if (isset($data['phone'])) {
+        if (isset($data['phone']) && !empty($data['phone'])) {
             $message .= "Phone: {$data['phone']}\n";
         }
         
-        if (isset($data['message'])) {
+        if (isset($data['message']) && !empty($data['message'])) {
             $message .= "Message: {$data['message']}\n";
+        }
+        
+        // Add form data to email
+        if (isset($data['formData']) && is_array($data['formData'])) {
+            $message .= "\n--- FORM RESPONSES ---\n";
+            
+            if (isset($data['formData']['collectionExperience'])) {
+                $message .= "Collection Experience: {$data['formData']['collectionExperience']}\n";
+            }
+            
+            if (isset($data['formData']['inquiryType'])) {
+                $message .= "Inquiry Type: {$data['formData']['inquiryType']}\n";
+            }
+            
+            if (isset($data['formData']['collectionTier'])) {
+                $message .= "Collection Tier: {$data['formData']['collectionTier']}\n";
+            }
+            
+            // Handle array fields
+            if (isset($data['formData']['acquisitionGoals']) && is_array($data['formData']['acquisitionGoals'])) {
+                $message .= "Acquisition Goals: " . implode(', ', $data['formData']['acquisitionGoals']) . "\n";
+            }
+            
+            if (isset($data['formData']['inquiryRoles']) && is_array($data['formData']['inquiryRoles'])) {
+                $message .= "Inquiry Roles: " . implode(', ', $data['formData']['inquiryRoles']) . "\n";
+            }
         }
         
         $headers = "From: website@" . $_SERVER['HTTP_HOST'];
