@@ -192,14 +192,12 @@
   background: transparent;
   border: none;
   font-size: 1.75rem;
+  font-weight: 300;
   cursor: pointer;
-  z-index: 1;
-  color: #fff;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 10;
+  color: #000;
+  line-height: 1;
+  padding: 0;
   transition: transform 0.2s ease;
 }
 
@@ -366,5 +364,6 @@
   .closeButton {
     top: 1rem;
     right: 1rem;
+    font-size: 1.5rem;
   }
 }

@@ -205,7 +205,8 @@
 
 .artworkActions {
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.8rem;
   margin-top: 1rem;
 }
 
@@ -233,6 +234,37 @@
 
 .deleteButton:hover {
   background-color: #ffcdd2;
+}
+
+/* Order control styles */
+.orderControls {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.orderButton {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+  color: #000;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0;
+}
+
+.orderButton:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.orderButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* File upload styles */

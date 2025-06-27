@@ -13,14 +13,15 @@
 
 .modalContent {
   background-color: white;
-  padding: 40px;
+  padding: 30px 35px;
   border-radius: 0;
   width: 90%;
   max-width: 600px;
   position: relative;
   max-height: 90vh;
-  overflow-y: auto;
   font-family: Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
 }
 
 .closeButton {
@@ -39,25 +40,49 @@
 
 .modalHeading {
   margin-top: 0;
-  font-size: 24px;
-  margin-bottom: 30px;
+  font-size: 22px;
+  margin-bottom: 25px;
   font-family: Helvetica, Arial, sans-serif;
   font-weight: bold;
   letter-spacing: 0.5px;
 }
 
 .stepHeading {
-  font-size: 18px;
-  margin-bottom: 25px;
+  font-size: 16px;
+  margin-bottom: 20px;
   font-family: Helvetica, Arial, sans-serif;
   letter-spacing: 0.5px;
   font-weight: 500;
+  line-height: 1.4;
 }
 
-.options {
+.options, .optionsContainer {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.multiSelectNote {
+  font-size: 13px;
+  color: #666;
+  margin-top: 0px;
+  margin-bottom: 15px;
+  font-family: Helvetica, Arial, sans-serif;
+  letter-spacing: 0.3px;
+  font-style: italic;
+}
+
+.honeypotField {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 0;
+  width: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
 }
 
 .optionContainer {
@@ -70,16 +95,21 @@
   cursor: pointer;
 }
 
-.radioLabel {
+.radioLabel, .optionLabel {
   display: flex;
   align-items: center;
   padding-left: 35px;
   position: relative;
   cursor: pointer;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.4;
   font-family: Helvetica, Arial, sans-serif;
   letter-spacing: 0.3px;
+  margin-bottom: 14px;
+}
+
+.checkboxContainer {
+  margin-bottom: 12px;
 }
 
 .radioLabel::before {
@@ -106,8 +136,16 @@
 .buttons {
   display: flex;
   justify-content: space-between;
-  margin-top: 40px;
+  margin-top: 25px;
   align-items: center;
+  margin-bottom: 5px;
+  position: sticky;
+  bottom: 0;
+  background-color: white;
+  padding-top: 10px;
+  z-index: 5;
+  border-top: 1px solid rgba(0,0,0,0.05);
+  width: 100%;
 }
 
 /* Default button style - white with black text */
@@ -142,24 +180,46 @@
   transform: translateY(1px);
 }
 
+.stepContainer {
+  width: 100%;
+  overflow-y: auto;
+  padding-right: 8px; /* Add some padding for the scrollbar */
+  max-height: calc(90vh - 150px); /* Adjust to leave room for buttons */
+  padding-bottom: 5px; /* Reduced padding at the bottom since we have more space */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+  scrollbar-width: thin;
+}
+
+.stepContainer::-webkit-scrollbar {
+  width: 5px;
+}
+
+.stepContainer::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+}
+
 .contactForm {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .formRow {
   display: flex;
   gap: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .formGroup {
   flex: 1;
   display: flex;
   flex-direction: column;
+  margin-bottom: 10px;
 }
 
 .formGroup label {
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   font-size: 12px;
   font-family: Helvetica, Arial, sans-serif;
   font-weight: 500;
@@ -167,12 +227,13 @@
 }
 
 .textInput {
-  padding: 10px;
+  padding: 10px 12px;
   border: 2px solid #000;
   width: 100%;
-  font-size: 16px;
+  font-size: 15px;
   font-family: Helvetica, Arial, sans-serif;
   background-color: white;
+  margin-bottom: 5px;
 }
 
 .textInput:focus {
@@ -189,37 +250,69 @@
 }
 
 .consentContainer {
+  margin-top: 25px;
   display: flex;
   align-items: flex-start;
-  margin-top: 20px;
+  padding: 10px 0;
+  border-top: 1px solid #eee;
+  margin-bottom: 5px;
 }
 
 .checkboxInput {
   position: relative;
   margin-top: 3px;
   margin-right: 10px;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  flex-shrink: 0;
   appearance: none;
-  border: 2px solid #000;
+  border: 1px solid #000;
   background-color: white;
   cursor: pointer;
+  border-radius: 0;
+}
+
+.checkboxOptionLabel {
+  margin-bottom: 13px;
+  display: flex;
+  align-items: flex-start;
+  padding-left: 0;
+}
+
+.checkboxOptionLabel .checkboxInput {
+  margin-top: 2px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.optionLabelText {
+  flex: 1;
 }
 
 .checkboxInput:checked {
-  background-color: #000;
+  background-color: #fff;
   border-color: #000;
 }
 
-/* No mark indicator for checked checkboxes - just solid black background */
+/* Add a checkmark for checked checkboxes */
 .checkboxInput:checked::after {
-  display: none;
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid black;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  display: block;
 }
 
 .checkboxLabel {
   font-size: 12px;
   line-height: 1.4;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   font-family: Helvetica, Arial, sans-serif;
 }
 
@@ -236,7 +329,12 @@
   .modalContent {
     padding: 20px;
     width: 95%;
-    max-height: 85vh;
+    max-height: 90vh;
+  }
+  
+  .stepContainer {
+    max-height: calc(90vh - 140px); /* More space for content on mobile */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   }
   
   .button,
@@ -267,23 +365,26 @@
   }
   
   .stepHeading {
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.4;
+    margin-bottom: 18px;
   }
   
   .button {
     padding: 12px 20px;
     font-size: 14px;
     min-width: 110px;
-    margin: 8px;
+    margin: 0;
     width: auto;
     flex: 0 1 auto;
   }
   
   .buttons {
     flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 30px; /* Reduced from 40px */
+    justify-content: space-between;
+    margin-top: 25px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0,0,0,0.05);
   }
   
   .radioLabel {
@@ -309,12 +410,29 @@
   .checkboxInput {
     width: 20px;
     height: 20px;
-    margin-top: 2px;
+    margin-top: 0;
+    align-self: center;
+  }
+  
+  .checkboxOptionLabel {
+    display: flex;
+    align-items: flex-start;
+    padding: 8px 0;
+    margin-bottom: 10px;
+  }
+  
+  .checkboxOptionLabel .checkboxInput {
+    margin-top: 0;
+    align-self: center;
+    width: 22px;
+    height: 22px;
   }
   
   .checkboxInput:checked::after {
-    left: 6px;
-    top: 2px;
+    left: 7px;
+    top: 3px;
+    width: 6px;
+    height: 11px;
   }
   
   .checkboxLabel {
@@ -324,7 +442,7 @@
   .consentContainer {
     margin-top: 25px;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
   }
   
   .textInput {
@@ -339,9 +457,16 @@
     padding: 8px;
   }
   
-  /* Reduced spacing between options */
+  /* Adjusted spacing between options */
   .options {
-    gap: 12px;
+    margin-bottom: 15px;
+  }
+  
+  .multiSelectNote {
+    font-size: 12px;
+    margin-top: 2px;
+    margin-bottom: 12px;
+    color: #666;
   }
   
   .errorMessage {
@@ -379,8 +504,8 @@
 
 /* Final step button styling */
 .finalStepButtons {
-  justify-content: center;
-  margin-top: 60px;
+  justify-content: space-between;
+  margin-top: 30px;
 }
 
 .completeButton {
@@ -391,7 +516,7 @@
 
 @media (max-width: 600px) {
   .finalStepButtons {
-    margin-top: 50px;
+    margin-top: 25px;
   }
   
   .completeButton {

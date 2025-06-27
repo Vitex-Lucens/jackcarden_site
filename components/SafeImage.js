@@ -55,12 +55,12 @@ export default function SafeImage({ src, alt, className, onLoad, style, width, h
     // If we have more fallbacks to try
     if (nextIndex < fallbackUrls.length) {
       // Try next fallback
-      console.log(`Image failed to load: ${currentSrc}\nTrying fallback #${nextIndex + 1}`);
+      // Silently try the next fallback
       setFallbackIndex(nextIndex);
       setCurrentSrc(fallbackUrls[nextIndex]);
     } else {
       // We've exhausted all fallbacks - show inline SVG as last resort
-      console.error(`All image fallbacks failed for: ${src}`);
+      // All fallbacks exhausted - will show the last resort SVG
     }
   };
   

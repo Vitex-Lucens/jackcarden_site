@@ -4,124 +4,70 @@ A minimalist, elegant website for artist Jack Carden featuring:
 
 - Clean, typography-focused design
 - Art gallery with easy content management
+- Admin interface for updating site content
 - Multi-step acquisition inquiry form 
 - Mailing list integration with SendinBlue/Brevo
 
 ## Features
-
-- **Gallery Management**: Simple JSON-based content management using data/gallery.json
+- **Gallery Management**: Drag-and-drop reordering with JSON-based storage
+- **About Page Management**: Rich text editor for artist information and exhibitions
+- **Secure Admin Area**: Server-side bcrypt authentication with token-based sessions
+- **Responsive Design**: Mobile-optimized layout
 - **Acquisition Form**: GDPR-compliant multi-step questionnaire for art inquiries
-- **Mailing List**: Full integration with SendinBlue/Brevo API for contact management
-- **Admin Interface**: Password-protected area for the artist to update content
-- **Responsive Design**: Fully responsive layout optimized for all device sizes, including mobile-optimized navigation
-- **SEO Ready**: Optimized metadata and structured content
-- **Hybrid Deployment**: Compatible with both Next.js development and traditional cPanel hosting
-- **SafeImage Component**: Cross-environment image path resolution for consistent display across root domain and development environments
+- **Image Handling**: Secure upload system with SafeImage component for cross-environment path resolution
+- **Contact System**: Integrated form with email notifications
+- **Mailing List**: Integration with SendinBlue/Brevo for subscriber management
+- **SEO Optimization**: Title tags, meta descriptions, Open Graph and Twitter card integration
+- **Hybrid Deployment**: Compatible with Next.js development and traditional cPanel hosting
+- **Path Resolution**: Automatic handling of URLs across development and production environments
 
 ## Technology Stack
-
-- **Frontend**: Next.js with React
-- **Backend**: PHP API endpoints for production (cPanel compatibility)
+- **Frontend**: Next.js with React 
+- **Backend**: PHP API endpoints for GreenGeeks cPanel compatibility
 - **Styling**: CSS Modules with responsive design
+- **Authentication**: Server-side bcrypt password protection with token-based auth
 - **Data Storage**: JSON files for content, PHP for API handling
-- **Deployment**: Static export to root domain on cPanel hosting
+- **Deployment**: Static export to root domain (jackcarden.art)
 
-## Deployment Setup
 
-### Next.js Configuration
-
-```javascript
-// next.config.js
-module.exports = {
-  output: 'export',  // Creates static export for cPanel hosting
-  // Root domain deployment - no basePath needed
-  // other config options...
-}
-```
-
-### Domain Configuration
-
-The site is configured for deployment to the root domain (jackcarden.art) rather than a subdirectory. This means all API endpoints, images, and assets are served from root paths (e.g., '/api/' instead of '/jackcarden/api/').
-
-### PHP API Integration
-
-The site uses PHP alternatives for all Next.js API routes when deployed to cPanel:
-- `getGallery.php` - Fetches gallery data
+### PHP API Endpoints
+When deployed on GreenGeeks cPanel hosting, the site uses these PHP endpoints:
+- `verifyAdmin.php` - Handles admin authentication
 - `saveGallery.php` - Saves gallery updates
 - `uploadImage.php` - Handles image uploads
-- `checkUploads.php` - Checks for uploaded files
+- `getGallery.php` - Fetches gallery data
 - `saveAbout.php` - Updates about page content
 - `submitInquiry.php` - Processes contact form submissions
+- `checkUploads.php` - Checks for uploaded files
 
-## Mobile Optimizations
-
-### Header & Navigation
-- Mobile hamburger menu for screens below 768px width
-- Removed header bottom border on mobile for a cleaner look
-- Adjusted spacing above navigation items in mobile menu
-
-### Footer
-- Increased spacing above footer on mobile (2rem margin)
-- Moved Instagram link above copyright text on mobile
-- Made social links more prominent with centered alignment
-
-### About Page
-- Moved artist image to bottom of page on mobile using CSS flexbox order
-- Applied consistent Helvetica font styling to headings
-- Implemented vertical exhibition layout on mobile
-- Centered headings and contact information for better balance
-
-### Home Page
-- Adjusted vertical spacing between elements
-- Improved button styling with larger touch targets
-- Consistent typography with Helvetica and proper letter spacing
-
-### Questionnaire Modal
-- Fixed button text colors on mobile (black text on white backgrounds)
-- Removed decorative ticks from checkboxes for minimalist design
-- Improved form control spacing on mobile
-- Customizable price tier options with four tiers:
-  - $50K — $250K+
-  - $25K — $50K
-  - $5K — $25K
-  - Up to $5K
-- Enhanced multi-step form flow with GDPR-compliant consent checkbox
-- Two-step submission process with clear "NEXT" and "COMPLETE" buttons
-- Optional comments field for additional information
-- Custom post-submission message: "Due to high demand, each applicant is considered carefully. We'll be in touch if we feel it's the right fit."
-
-## Technology Stack
-
-- **Framework**: Next.js & React for server-side rendering and SEO benefits
-- **Styling**: CSS Modules for component-scoped styling
-- **Forms**: Formik with Yup validation for a smooth form experience
-- **Content**: JSON for simple, file-based data storage
-- **API**: SendinBlue/Brevo for email marketing and contact management
-- **Authentication**: Simple password protection for admin area
+### Admin Authentication
+The admin interface uses server-side password authentication with bcrypt hashing and token-based sessions:
+1. Admin enters password on the admin page
+2. Password is verified against a secure bcrypt hash 
+3. On success, a secure random token is provided with 24-hour expiry
+4. This token is required for all admin API requests
 
 ## Project Structure
-
 ```
 /
-├── components/       # Reusable React components
-├── data/            # JSON data files for content
-├── pages/           # Next.js pages and API routes
-│   ├── api/         # API endpoints
-│   └── admin/       # Admin interface
-├── public/          # Static assets
-├── styles/          # CSS modules
-└── utils/           # Utility functions
+├── components/      # Reusable React components
+├── data/           # JSON data files for content
+├── pages/          # Next.js pages and API routes
+│   ├── api/        # API endpoints (development only)
+│   └── admin/      # Admin interface
+├── php_api/        # PHP API files for production
+├── public/         # Static assets
+├── styles/         # CSS modules
+└── utils/          # Utility functions
 ```
 
-## Environment Setup
-
-Create a `.env.local` file in the root directory with:
-
-```
-SENDINBLUE_API_KEY=your_api_key_here
-SENDINBLUE_LIST_ID=your_list_id_here
-ADMIN_PASSWORD=your_admin_password_here
-```
+## Dependencies
+- **Next.js & React**: Frontend framework
+- **CSS Modules**: Component styling
+- **Formik & Yup**: Form handling and validation
+- **Axios**: HTTP client for API calls
+- **PHP**: Server-side API implementation
+- **SendinBlue/Brevo API**: Email marketing
 
 ## Development
 
@@ -131,42 +77,39 @@ npm install
 
 # Run development server
 npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
 ```
 
-## Build & Deployment
-
-The project includes specialized build scripts for deploying to GreenGeeks cPanel hosting:
+## Deployment
 
 ```bash
-# Standard development build
-npm run build
-
-# Production build with PHP API files and proper directory structure
-npm run build-prod
-
-# Production build + create deployment ZIP package
+# Generate deployment package
 npm run build-prod-zip
 ```
 
-The `build-prod-zip` command creates a complete deployment package with:
-- Static Next.js export
-- PHP API alternatives for all endpoints
-- Proper subdirectory configuration (/jackcarden)
-- .htaccess for Apache routing
-- Placeholder images in all required locations
-- JSON data files
+This creates `jackcarden_site.zip` containing:
+- Static Next.js export with optimized assets
+- All required PHP API endpoints
+- Root domain configuration for jackcarden.art
+- .htaccess for proper routing on Apache
 
-To deploy:
-1. Run `npm run build-prod-zip` to generate `jackcarden_site.zip`
-2. Upload the ZIP file to GreenGeeks cPanel
-3. Extract to the webroot (or appropriate subdirectory)
+### Deployment Steps:
+1. Upload `jackcarden_site.zip` to GreenGeeks cPanel
+2. Extract to the webroot directory
+3. Ensure PHP files have proper permissions (644 or 755)
 
-## Content Management
 
-The gallery is managed through the admin interface at `/admin`. Log in with the password set in your environment variables to add, edit, or remove artwork.
+### Gallery Management
+Use the admin interface at `/admin` to:
+- Add, edit and remove artwork entries
+- Reorder gallery items using up/down controls
+- Upload and manage artwork images
+- Set artwork details and availability status
+
+### Changing Admin Password
+1. Upload the site including the `generate_password_hash.php` utility
+2. Access the tool at `https://jackcarden.art/api/generate_password_hash.php`
+3. Enter your desired new password and generate a hash
+4. Copy the generated bcrypt hash
+5. Update the hash in `php_api/verifyAdmin.php`
+6. Rebuild and redeploy the site
+7. **Important:** Delete the password generator file from your server

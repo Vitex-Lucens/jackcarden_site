@@ -1,16 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import styles from '../styles/AcquisitionModal.module.css';
+import { getApiBase } from '../utils/api';
 import axios from 'axios';
+import Head from 'next/head';
 
 const AcquisitionModal = ({ onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState('');
+  
+  // Execute reCAPTCHA when form is being submitted
+  const executeRecaptcha = async () => {
+    if (typeof window !== 'undefined' && window.grecaptcha) {
+      try {
+        const token = await window.grecaptcha.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY, {action: 'submit_inquiry'});
+        setRecaptchaToken(token);
+        return token;
+      } catch (error) {
+        console.error('reCAPTCHA error:', error);
+        return '';
+      }
+    }
+    return '';
+  };
   
   // Validation schemas for each step with consent checkbox
   const validationSchemas = [
-    // Step 1: Collection experience
+    // Step 1: Collection experience (now with checkbox UI but still single-select)
     Yup.object({
       collectionExperience: Yup.string().required('Please select an option'),
     }),
@@ -18,17 +36,21 @@ const AcquisitionModal = ({ onClose }) => {
     Yup.object({
       inquiryType: Yup.string().required('Please select an option'),
     }),
-    // Step 3: Acquisition goals
+    // Step 3: Acquisition goals (now checkboxes - multi-select)
     Yup.object({
-      acquisitionGoal: Yup.string().required('Please select an option'),
+      acquisitionGoals: Yup.array()
+        .min(1, 'Please select at least one option')
+        .required('Please select at least one option'),
     }),
     // Step 4: Collection tier
     Yup.object({
       collectionTier: Yup.string().required('Please select an option'),
     }),
-    // Step 5: Inquiry role
+    // Step 5: Inquiry role (now checkboxes - multi-select)
     Yup.object({
-      inquiryRole: Yup.string().required('Please select an option'),
+      inquiryRoles: Yup.array()
+        .min(1, 'Please select at least one option')
+        .required('Please select at least one option'),
     }),
     // Step 6: Contact information with consent checkbox
     Yup.object({
@@ -46,34 +68,39 @@ const AcquisitionModal = ({ onClose }) => {
     {
       title: '1. HAVE YOU COLLECTED ORIGINAL ART BEFORE?',
       fieldName: 'collectionExperience',
+      isSingleSelectCheckbox: true,
       options: [
-        { value: 'experienced', label: 'YES — I\'VE COLLECTED WORKS FROM NOTABLE ARTISTS.' },
-        { value: 'beginner', label: 'YES — I\'M EARLY IN MY JOURNEY, BUT I KNOW WHAT I LIKE.' },
-        { value: 'new', label: 'NO — BUT I\'M READY TO BEGIN.' },
+        { value: 'experienced', label: 'YES - I collect regularly and seek serious acquisitions.' },
+        { value: 'beginner', label: 'YES - I\'m early in my journey, but discerning.' },
+        { value: 'new', label: 'NO - But I\'m eager to start collecting with intention.' },
       ]
     },
     {
       title: '2. ARE YOU INQUIRING ABOUT A SPECIFIC WORK OR OPEN TO OTHERS?',
       fieldName: 'inquiryType',
+      isSingleSelectCheckbox: true,
       options: [
-        { value: 'specific', label: 'I HAVE A SPECIFIC PIECE IN MIND' },
-        { value: 'open', label: 'OPEN TO AVAILABLE AND UPCOMING' },
-        { value: 'both', label: 'BOTH' },
+        { value: 'specific', label: 'I\'m interested in a specific piece' },
+        { value: 'open', label: 'I\'m open to existing and future works' },
+        { value: 'both', label: 'Both / Undecided' },
       ]
     },
     {
-      title: '3. WHAT DESCRIBES YOUR ACQUISITION GOALS BEST?',
-      fieldName: 'acquisitionGoal',
+      title: '3. WHICH OF THE FOLLOWING REFLECT YOUR ACQUISITION GOALS?',
+      fieldName: 'acquisitionGoals',
+      isCheckboxes: true,
+      isMultiSelect: true,
       options: [
-        { value: 'investment', label: 'RARE AND INVESTMENT-GRADE' },
-        { value: 'curated', label: 'PERSONALLY CURATED' },
-        { value: 'legacy', label: 'LONG-TERM LEGACY' },
-        { value: 'emotional', label: 'I COLLECT BASED ON EMOTIONAL CONNECTION' },
+        { value: 'investment', label: 'Rarity and investment value' },
+        { value: 'legacy', label: 'Legacy and long-term vision' },
+        { value: 'personal', label: 'Personal resonance and emotional pull' },
+        { value: 'conceptual', label: 'Conceptual or narrative-driven works' },
       ]
     },
     {
-      title: '4. WHICH TIER REFLECTS YOUR CURRENT COLLECTION STRATEGY?',
+      title: '4. WHICH ACQUISITION TIER BEST ALIGNS WITH YOUR CURRENT STRATEGY?',
       fieldName: 'collectionTier',
+      isSingleSelectCheckbox: true,
       options: [
         { value: 'tier1', label: '$50K — $250K+' },
         { value: 'tier2', label: '$25K — $50K' },
@@ -82,25 +109,25 @@ const AcquisitionModal = ({ onClose }) => {
       ]
     },
     {
-      title: '5. ARE YOU INQUIRING FOR YOURSELF OR SOMEONE ELSE?',
-      fieldName: 'inquiryRole',
+      title: '5. WHICH ROLE BEST DESCRIBES YOUR INQUIRY?',
+      fieldName: 'inquiryRoles',
+      isCheckboxes: true,
+      isMultiSelect: true,
       options: [
-        { value: 'private', label: 'FOR MY PRIVATE COLLECTION' },
-        { value: 'behalf', label: 'ON BEHALF OF A COLLECTOR' },
-        { value: 'advisor', label: 'ADVISOR / CONSULTANT' },
-        { value: 'other', label: 'OTHER' },
+        { value: 'personal', label: 'For my personal collection' },
+        { value: 'representing', label: 'Representing a collector' },
+        { value: 'advisor', label: 'Curator or art advisor' },
+        { value: 'institutional', label: 'Institutional interest / public collection' },
+        { value: 'other', label: 'Other' },
       ]
     },
     {
       title: '6. CONTACT INFORMATION',
       fieldName: 'contactInfo',
-      isContactForm: true
+      isContactForm: true,
+      isFinalStep: true,
+      showPrevious: true
     },
-    {
-      title: '',
-      fieldName: 'finalStep',
-      isFinalStep: true
-    }
   ];
 
   // Handle moving to the next step
@@ -113,24 +140,60 @@ const AcquisitionModal = ({ onClose }) => {
   const handleFinalSubmit = async (values, { setSubmitting }) => {
     try {
       console.log('Submitting form data:', values);
-      const response = await axios.post('/api/submitInquiry', values);
-      console.log('Form submitted successfully:', response.data);
+      // For development testing, we'll set submitted to true without API call
+      // In production, uncomment the API call below
+      // const apiBase = getApiBase();
+      // const response = await axios.post(`${apiBase}/submitInquiry`, values);
+      // console.log('Form submitted successfully:', response.data);
+      
+      // Set submitted state to true to show thank you message
       setSubmitted(true);
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('There was a problem submitting your inquiry. Please try again.');
+      alert('There was an error submitting your inquiry. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
   
   // Combined handler that either moves to next step or submits form
-  const handleSubmit = (values, { setSubmitting }) => {
+  const handleSubmit = async (values, { setSubmitting }) => {
     if (currentStep < steps.length - 1) {
       handleNextStep(values);
       setSubmitting(false);
     } else {
-      handleFinalSubmit(values, { setSubmitting });
+      try {
+        // Check honeypot field - if it's filled, silently reject but show success to the bot
+        if (values.phoneExtension) {
+          console.log('Honeypot triggered - likely bot submission');
+          // Fake success but don't actually submit
+          setSubmitted(true);
+          return;
+        }
+        
+        // Get reCAPTCHA token
+        const token = await executeRecaptcha();
+        
+        // Get the API base path
+        const apiBase = getApiBase();
+        console.log('Submitting form data:', values);
+        
+        // Submit the data to the API with reCAPTCHA token
+        const response = await axios.post(`${apiBase}/submitInquiry`, {
+          ...values,
+          recaptchaToken: token
+        });
+        
+        console.log('Form submitted successfully:', response.data);
+        
+        // Show thank you message
+        setSubmitted(true);
+      } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('There was an error submitting your inquiry. Please try again.');
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -142,29 +205,60 @@ const AcquisitionModal = ({ onClose }) => {
   const closeModal = () => {
     onClose();
   };
+  
+  // Load reCAPTCHA script
+  useEffect(() => {
+    // Only load reCAPTCHA if we're in the browser and it's not already loaded
+    if (typeof window !== 'undefined' && !window.grecaptcha && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+      const script = document.createElement('script');
+      script.src = `https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`;
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+      
+      return () => {
+        document.body.removeChild(script);
+      };
+    }
+  }, []);
 
   return (
     <div className={styles.modalOverlay} onClick={closeModal}>
-      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+      {/* Include reCAPTCHA badge attribution */}
+      <Head>
+        <style>{`
+          .grecaptcha-badge { visibility: hidden; }
+        `}</style>
+      </Head>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         {submitted ? (
           <div className={styles.thankYou}>
-            <button className={styles.closeButton} onClick={closeModal}>×</button>
+            <button onClick={closeModal} className={styles.closeButton}>✕</button>
             <h2 className={styles.modalHeading}>THANK YOU FOR YOUR INTEREST</h2>
-            <p>DUE TO HIGH DEMAND, EACH APPLICANT IS CONSIDERED CAREFULLY. WE'LL BE IN TOUCH IF WE FEEL IT'S THE RIGHT FIT.</p>
+            <p>
+              DUE TO HIGH DEMAND, EACH APPLICANT IS CONSIDERED CAREFULLY. WE'LL BE IN TOUCH IF WE FEEL IT'S THE RIGHT FIT.
+            </p>
+            <div style={{fontSize: '10px', marginTop: '20px', color: '#888', fontFamily: 'Helvetica, Arial, sans-serif'}}>
+              This site is protected by reCAPTCHA and the Google
+              <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style={{color: '#666', marginLeft: '3px'}}>Privacy Policy</a> and
+              <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" style={{color: '#666', marginLeft: '3px'}}>Terms of Service</a> apply.
+            </div>
           </div>
         ) : (
           <Formik
             initialValues={{
               collectionExperience: '',
               inquiryType: '',
-              acquisitionGoal: '',
+              acquisitionGoals: [],
               collectionTier: '',
-              inquiryRole: '',
+              inquiryRoles: [],
               firstName: '',
               lastName: '',
               email: '',
               phone: '',
+              comments: '',
               consent: false,
+              phoneExtension: '', // Honeypot field
             }}
             enableReinitialize={false}
             validateOnChange={false}
@@ -172,126 +266,178 @@ const AcquisitionModal = ({ onClose }) => {
             validationSchema={validationSchemas[currentStep]}
             onSubmit={handleSubmit}
           >
-            {({ isSubmitting, values, errors, touched }) => {
+            {({ isSubmitting, values, errors, touched, setFieldValue }) => {
               // Check if the current step's field has a value (is selected)
               // This determines if the Next button should have the active style
               const currentFieldName = steps[currentStep].fieldName;
               const isOptionSelected = Boolean(values[currentFieldName]);
               const isContactFormValid = currentStep === steps.length - 1 && 
-                values.firstName && 
-                values.lastName && 
-                values.email && 
-                values.consent;
+                Boolean(values.firstName) && 
+                Boolean(values.lastName) && 
+                Boolean(values.email) && 
+                Boolean(values.consent);
                 
               return (
-              <Form>
-                <button className={styles.closeButton} onClick={closeModal}>×</button>
-                {!steps[currentStep].isFinalStep && (
-                  <h2 className={styles.modalHeading}>ACQUISITION INQUIRY</h2>
-                )}
-                <div className={styles.step}>
+                <Form>
+                  <button className={styles.closeButton} onClick={closeModal}>×</button>
                   {!steps[currentStep].isFinalStep && (
-                    <h3 className={styles.stepHeading}>{steps[currentStep].title}</h3>
+                    <h2 className={styles.modalHeading}>ACQUISITION INQUIRY</h2>
                   )}
                   
-                  {steps[currentStep].isFinalStep ? (
-                    <div style={{ height: '100px' }}></div>
-                  ) : !steps[currentStep].isContactForm ? (
-                    <div className={styles.options}>
-                      {steps[currentStep].options.map((option, index) => (
-                        <div key={index} className={styles.optionContainer}>
-                          <Field 
-                            type="radio" 
-                            name={steps[currentStep].fieldName} 
-                            value={option.value} 
-                            id={`${steps[currentStep].fieldName}-${option.value}`}
-                            className={styles.radioInput}
-                          />
-                          <label 
-                            htmlFor={`${steps[currentStep].fieldName}-${option.value}`}
-                            className={styles.radioLabel}
-                          >
-                            {option.label}
-                          </label>
+                  <div className={styles.stepContainer}>
+                    <h3 className={styles.stepHeading}>{steps[currentStep].title}</h3>
+                    
+                    {steps[currentStep].isMultiSelect && (
+                      <div className={styles.multiSelectNote}>Check all that apply</div>
+                    )}
+                    
+                    {steps[currentStep].isContactForm ? (
+                      <div className={styles.contactForm}>
+                        <div className={styles.formRow}>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="firstName">FIRST NAME</label>
+                            <Field 
+                              type="text" 
+                              name="firstName" 
+                              id="firstName" 
+                              className={styles.textInput}
+                            />
+                            <ErrorMessage name="firstName" component="div" className={styles.errorMessage} />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="lastName">LAST NAME</label>
+                            <Field 
+                              type="text" 
+                              name="lastName" 
+                              id="lastName" 
+                              className={styles.textInput}
+                            />
+                            <ErrorMessage name="lastName" component="div" className={styles.errorMessage} />
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className={styles.contactForm}>
-                      <div className={styles.formRow}>
-                        <div className={styles.formGroup}>
-                          <label htmlFor="firstName">FIRST NAME</label>
-                          <Field 
-                            type="text" 
-                            name="firstName" 
-                            id="firstName" 
-                            className={styles.textInput}
-                          />
-                          <ErrorMessage name="firstName" component="div" className={styles.errorMessage} />
+                        <div className={styles.formRow}>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="phone">PHONE</label>
+                            <Field 
+                              type="tel" 
+                              name="phone" 
+                              id="phone" 
+                              className={styles.textInput}
+                            />
+                            <ErrorMessage name="phone" component="div" className={styles.errorMessage} />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="email">EMAIL</label>
+                            <Field 
+                              type="email" 
+                              name="email" 
+                              id="email" 
+                              className={styles.textInput}
+                            />
+                            <ErrorMessage name="email" component="div" className={styles.errorMessage} />
+                          </div>
+                          
+                          {/* Honeypot field - invisible to users but bots will fill it */}
+                          <div className={styles.honeypotField} aria-hidden="true">
+                            <label htmlFor="phoneExtension">Phone Extension (leave this empty)</label>
+                            <Field 
+                              type="text" 
+                              name="phoneExtension" 
+                              id="phoneExtension" 
+                              tabIndex="-1"
+                              autoComplete="off"
+                            />
+                          </div>
                         </div>
                         <div className={styles.formGroup}>
-                          <label htmlFor="lastName">LAST NAME</label>
+                          <label htmlFor="comments">ANYTHING YOU WISH TO ADD (optional)</label>
                           <Field 
-                            type="text" 
-                            name="lastName" 
-                            id="lastName" 
+                            as="textarea" 
+                            name="comments" 
+                            id="comments" 
                             className={styles.textInput}
+                            style={{ minHeight: '70px', resize: 'none', maxHeight: '70px', width: '100%' }}
                           />
-                          <ErrorMessage name="lastName" component="div" className={styles.errorMessage} />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <div className={`${styles.checkboxOptionLabel} ${styles.consentContainer}`}>
+                            <Field
+                              type="checkbox"
+                              name="consent"
+                              id="consent"
+                              className={styles.checkboxInput}
+                            />
+                            <label htmlFor="consent" className={styles.checkboxLabel}>
+                              I CONSENT TO MY PERSONAL DATA BEING PROCESSED FOR THE PURPOSE OF RECEIVING ARTWORK INFORMATION AND COMMUNICATIONS FROM JACK CARDEN'S STUDIO.
+                            </label>
+                          </div>
+                          <ErrorMessage name="consent" component="div" className={styles.errorMessage} />
                         </div>
                       </div>
-                      <div className={styles.formRow}>
-                        <div className={styles.formGroup}>
-                          <label htmlFor="phone">PHONE</label>
-                          <Field 
-                            type="tel" 
-                            name="phone" 
-                            id="phone" 
-                            className={styles.textInput}
-                          />
-                          <ErrorMessage name="phone" component="div" className={styles.errorMessage} />
-                        </div>
-                        <div className={styles.formGroup}>
-                          <label htmlFor="email">EMAIL</label>
-                          <Field 
-                            type="email" 
-                            name="email" 
-                            id="email" 
-                            className={styles.textInput}
-                          />
-                          <ErrorMessage name="email" component="div" className={styles.errorMessage} />
+                    ) : (
+                      <div>
+                        <div className={styles.options}>
+                          {steps[currentStep].isCheckboxes ? (
+                            // Multi-select checkbox version for questions 3 and 5
+                            steps[currentStep].options.map((option, idx) => (
+                              <div key={idx} className={styles.checkboxContainer}>
+                                <label className={`${styles.optionLabel} ${styles.checkboxOptionLabel} ${values[steps[currentStep].fieldName]?.includes(option.value) ? styles.selected : ''}`}>
+                                  <Field 
+                                    type="checkbox" 
+                                    name={steps[currentStep].fieldName} 
+                                    value={option.value} 
+                                    className={styles.checkboxInput}
+                                  />
+                                  <span className={styles.optionLabelText}>{option.label}</span>
+                                </label>
+                              </div>
+                            ))
+                          ) : steps[currentStep].isSingleSelectCheckbox ? (
+                            // Single-select checkbox version for the first question
+                            steps[currentStep].options.map((option, idx) => (
+                              <div key={idx} className={styles.checkboxContainer}>
+                                <label 
+                                  className={`${styles.optionLabel} ${styles.checkboxOptionLabel} ${values[steps[currentStep].fieldName] === option.value ? styles.selected : ''}`}
+                                >
+                                  <input 
+                                    type="checkbox" 
+                                    checked={values[steps[currentStep].fieldName] === option.value}
+                                    className={styles.checkboxInput}
+                                    onChange={() => {
+                                      // If already selected, deselect it
+                                      if (values[steps[currentStep].fieldName] === option.value) {
+                                        setFieldValue(steps[currentStep].fieldName, '');
+                                      } else {
+                                        // If selecting new option, deselect any others
+                                        setFieldValue(steps[currentStep].fieldName, option.value);
+                                      }
+                                    }}
+                                  />
+                                  <span className={styles.optionLabelText}>{option.label}</span>
+                                </label>
+                              </div>
+                            ))
+                          ) : (
+                            // Radio button version for other single-select questions (2 and 4)
+                            steps[currentStep].options.map((option, idx) => (
+                              <label key={idx} className={`${styles.optionLabel} ${values[steps[currentStep].fieldName] === option.value ? styles.selected : ''}`}>
+                                <Field 
+                                  type="radio" 
+                                  name={steps[currentStep].fieldName} 
+                                  value={option.value} 
+                                  className={styles.radioInput}
+                                />
+                                <span className={styles.optionLabelText}>{option.label}</span>
+                              </label>
+                            ))
+                          )}
                         </div>
                       </div>
-                      <div className={styles.formGroup}>
-                        <label htmlFor="comments">ANYTHING YOU WISH TO ADD (optional)</label>
-                        <Field 
-                          as="textarea" 
-                          name="comments" 
-                          id="comments" 
-                          className={styles.textInput}
-                          style={{ minHeight: '80px', resize: 'vertical' }}
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <div className={styles.consentContainer}>
-                          <Field
-                            type="checkbox"
-                            name="consent"
-                            id="consent"
-                            className={styles.checkboxInput}
-                          />
-                          <label htmlFor="consent" className={styles.checkboxLabel}>
-                            I CONSENT TO MY PERSONAL DATA BEING PROCESSED FOR THE PURPOSE OF RECEIVING ARTWORK INFORMATION AND COMMUNICATIONS FROM JACK CARDEN'S STUDIO.
-                          </label>
-                        </div>
-                        <ErrorMessage name="consent" component="div" className={styles.errorMessage} />
-                      </div>
-                    </div>
-                  )}
+                    )}
                 </div>
 
                 <div className={`${styles.buttons} ${steps[currentStep].isFinalStep ? styles.finalStepButtons : ''}`}>
-                  {currentStep > 0 && !steps[currentStep].isFinalStep && (
+                  {(currentStep > 0 && (!steps[currentStep].isFinalStep || steps[currentStep].showPrevious)) && (
                     <button
                       type="button"
                       onClick={handlePrevious}

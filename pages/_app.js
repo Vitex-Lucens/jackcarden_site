@@ -10,12 +10,8 @@ function MyApp({ Component, pageProps }) {
       apiBase: '/api',
       
       // Environment flag
-      isStaticDeploy: true,
-      
-      // Debug info
-      loadTime: new Date().toISOString()
+      isStaticDeploy: true
     };
-    console.log('API Config loaded directly:', window.API_CONFIG);
   `;
   
   return (

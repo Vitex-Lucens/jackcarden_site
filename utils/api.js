@@ -39,46 +39,28 @@ export const getImagePath = (imagePath) => {
 
 // Get the base URL for API calls
 export const getApiBase = () => {
-  // Enhanced logging to help debug API path resolution
-  const debug = () => {
-    if (typeof window !== 'undefined') {
-      console.group('API Path Resolution Debug');
-      console.log('Window location:', window.location.href);
-      console.log('Hostname:', window.location.hostname);
-      console.log('Protocol:', window.location.protocol);
-      console.log('API_CONFIG available:', !!window.API_CONFIG);
-      if (window.API_CONFIG) {
-        console.log('API_CONFIG:', JSON.stringify(window.API_CONFIG));
-      }
-      console.groupEnd();
-    }
-  };
-  
-  try {
-    // Always log debug info
-    debug();
+  // Add debugging information for production troubleshooting
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    const apiBase = '/api';
     
-    // Check if we're in the browser
-    if (typeof window !== 'undefined') {
-      // In production environment (not localhost) - now using standard /api path
-      const hostname = window.location.hostname;
-      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        console.log('PRODUCTION MODE: Using base path: /api');
-        return '/api';
-      } else {
-        // In development
-        console.log('DEVELOPMENT MODE: Using base path: /api');
-        return '/api';
-      }
-    }
-  } catch (err) {
-    console.error('Error in getApiBase:', err);
+    // Log important information for debugging
+    console.log('API Base Debug:', {
+      hostname,
+      protocol,
+      apiBase,
+      apiConfig: window.API_CONFIG,
+      fullApiPath: `${protocol}//${hostname}${apiBase}`
+    });
   }
   
-  // Ultimate fallback
-  console.log('FALLBACK: Using default API base path: /api');
+  // Simplified API base path resolution for production
+  // Now that we're on the root domain, we always use /api
   return '/api';
 };
+
+import axios from 'axios';
 
 /**
  * Get gallery data from the server
@@ -99,47 +81,48 @@ export async function fetchGallery() {
 /**
  * Save gallery data to the server
  */
-export async function saveGallery(galleryData) {
+export const saveGallery = async (gallery, token) => {
   try {
-    const response = await fetch(`${getApiBase()}/saveGallery`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(galleryData),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to save gallery (${response.status})`);
-    }
-    
-    return await response.json();
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const response = await axios.post(`${getApiBase()}/saveGallery.php`, gallery, { headers });
+    return response.data;
   } catch (error) {
-    console.error('Error saving gallery:', error);
-    throw error;
+    // Return a wrapped error
+    throw new Error(`Failed to save gallery: ${error.message}`);
   }
 }
 
 /**
  * Upload an image to the server
  */
-export async function uploadImage(file) {
+export const uploadImage = async (file, onProgress, token) => {
   try {
     const formData = new FormData();
     formData.append('image', file);
-    
-    const response = await fetch(`${getApiBase()}/uploadImage`, {
-      method: 'POST',
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to upload image (${response.status})`);
+
+    const headers = { 'Content-Type': 'multipart/form-data' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
-    
-    return await response.json();
+
+    const response = await axios.post(
+      `${getApiBase()}/uploadImage.php`,
+      formData,
+      {
+        headers,
+        onUploadProgress: (progressEvent) => {
+          if (onProgress && progressEvent.total) {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            onProgress(percentCompleted);
+          }
+        },
+      }
+    );
+
+    return response.data;
   } catch (error) {
-    console.error('Error uploading image:', error);
     throw error;
   }
 }
@@ -165,24 +148,23 @@ export async function checkUploads() {
 /**
  * Save about page data to the server
  */
-export async function saveAbout(aboutData) {
+export const saveAbout = async (aboutData, token) => {
   try {
-    const response = await fetch(`${getApiBase()}/saveAbout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(aboutData),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to save about data (${response.status})`);
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
     
-    return await response.json();
+    const response = await axios.post(
+      `${getApiBase()}/saveAbout.php`, 
+      aboutData, 
+      { headers }
+    );
+    
+    return response.data;
   } catch (error) {
-    console.error('Error saving about data:', error);
-    throw error;
+    // Return a wrapped error
+    throw new Error(`Failed to save about page: ${error.message}`);
   }
 }
 

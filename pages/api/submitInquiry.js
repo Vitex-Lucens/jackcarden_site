@@ -1,6 +1,6 @@
 import { addContact } from '../../utils/sendinblue';
 
-// This API endpoint handles form submissions to SendinBlue/Brevo
+// This API endpoint handles form submissions to SendinBlue/Brevo with spam protection
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -8,6 +8,42 @@ export default async function handler(req, res) {
 
   try {
     const data = req.body;
+    
+    // Check for honeypot field - if filled, silently accept but don't process
+    if (data.phoneExtension) {
+      console.log('Honeypot field triggered - likely spam submission');
+      // Return success response to avoid alerting bots
+      return res.status(200).json({ success: true, message: 'Thank you for your inquiry.' });
+    }
+    
+    // Verify reCAPTCHA token if present and in production
+    if (process.env.NEXT_PUBLIC_RECAPTCHA_SECRET_KEY && data.recaptchaToken) {
+      try {
+        const recaptchaVerification = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            secret: process.env.NEXT_PUBLIC_RECAPTCHA_SECRET_KEY,
+            response: data.recaptchaToken
+          })
+        });
+        
+        const recaptchaResult = await recaptchaVerification.json();
+        
+        // Score threshold - 0.5 is moderate and recommended by Google
+        if (!recaptchaResult.success || recaptchaResult.score < 0.5) {
+          console.log('reCAPTCHA verification failed:', recaptchaResult);
+          return res.status(400).json({ error: 'Spam protection triggered. Please try again.' });
+        }
+      } catch (recaptchaError) {
+        console.error('Error verifying reCAPTCHA:', recaptchaError);
+        // Continue processing in case of reCAPTCHA verification error
+        // This is optional; you could also reject the submission here
+      }
+    }
+    
+    // Remove spam protection fields before sending to marketing service
+    const { recaptchaToken, phoneExtension, ...cleanData } = data;
     
     // Validate required fields
     if (!data.email || !data.firstName || !data.lastName) {

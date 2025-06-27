@@ -84,11 +84,6 @@ export default function Gallery() {
               <p className={styles.modalMedium}>{selectedWork.medium}</p>
               <p className={styles.modalDimensions}>{selectedWork.dimensions}</p>
               <p className={styles.modalDescription}>{selectedWork.description}</p>
-              {selectedWork.status === 'available' && (
-                <Link href="/" className={styles.inquireButton}>
-                  INQUIRE
-                </Link>
-              )}
               {selectedWork.status === 'sold' && (
                 <div className={styles.soldBadge}>SOLD</div>
               )}

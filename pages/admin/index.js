@@ -5,6 +5,21 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import { getApiBase, getImagePath } from '../../utils/api';
 import SafeImage from '../../components/SafeImage';
+import crypto from 'crypto';
+
+// Initial form state for reset function
+const initialFormState = {
+  id: '',
+  title: '',
+  year: '',
+  medium: '',
+  dimensions: '',
+  category: '',
+  description: '',
+  imageUrl: '',
+  status: 'Available',
+  price: ''
+};
 
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -29,7 +44,6 @@ export default function Admin() {
     year: '',
     medium: '',
     dimensions: '',
-    category: '',
     description: '',
     imageUrl: '',
     status: 'available',
@@ -40,6 +54,29 @@ export default function Admin() {
   const fileInputRef = useRef(null);
   const [editMode, setEditMode] = useState(false);
   const router = useRouter();
+
+  // Check for existing login session in localStorage
+  useEffect(() => {
+    const session = localStorage.getItem('adminSession');
+    
+    if (session) {
+      try {
+        const sessionData = JSON.parse(session);
+        const now = Date.now();
+        
+        if (sessionData.expiry > now && sessionData.token) {
+          // Valid token and not expired
+          setIsLoggedIn(true);
+        } else {
+          // Session expired or missing token
+          localStorage.removeItem('adminSession');
+        }
+      } catch (e) {
+        // Invalid session data
+        localStorage.removeItem('adminSession');
+      }
+    }
+  }, []);
 
   // Loading data when logged in
   useEffect(() => {
@@ -68,7 +105,7 @@ export default function Admin() {
         setArtworks([]);
       }
     } catch (error) {
-      console.error('Error loading gallery data:', error);
+      // Error handled in UI
       setMessage('Error loading gallery data: ' + error.message);
     }
     
@@ -95,21 +132,42 @@ export default function Admin() {
       
       setAboutData(processedAboutData);
     } catch (error) {
-      console.error('Error loading about data:', error);
+      // Error handled in UI
       setMessage('Error loading about data: ' + error.message);
     }
     
     setMessage('');
   };
 
-  const handleLogin = (e) => {
+  // Server-side password verification
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // In a real app, this would be a secure authentication
-    if (password === 'admin123') { // Default password for demo purposes
-      setIsLoggedIn(true);
-      setMessage('');
-    } else {
-      setMessage('Incorrect password');
+    setMessage('Verifying...');
+    
+    try {
+      // Use the correct path for verifyAdmin.php
+      const apiUrl = `${getApiBase()}/verifyAdmin.php`;
+      console.log('Login API URL:', apiUrl); 
+      console.log('API Base:', getApiBase());
+      
+      const response = await axios.post(apiUrl, {
+        password: password
+      });
+      
+      if (response.data.success) {
+        setIsLoggedIn(true);
+        setMessage('');
+        // Store authentication token and expiry
+        const expiry = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+        localStorage.setItem('adminSession', JSON.stringify({ 
+          token: response.data.token,
+          expiry 
+        }));
+      } else {
+        setMessage('Incorrect password');
+      }
+    } catch (error) {
+      setMessage('Login failed: ' + (error.response?.data?.error || error.message));
     }
   };
 
@@ -125,15 +183,12 @@ export default function Admin() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
   const [uploadError, setUploadError] = useState('');
 
-  // Handle image file upload
-  const handleImageUpload = async (e) => {
-    console.log('Starting image upload...');
+  // Handle about page image upload
+  const handleAboutImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) {
-      console.log('No file selected');
       return;
     }
-    console.log('File to upload:', file.name, file.type, file.size);
     
     // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -148,64 +203,144 @@ export default function Admin() {
       return;
     }
     
-    setUploadError('');
+    // Set upload state
+    setUploadingImage(true);
+    setUploadProgress(0);
+    setMessage('Uploading artist image...');
     
     try {
-      setUploadingImage(true);
-      setUploadProgress(0);
-      setMessage('Uploading image...');
+      // Get auth token from session
+      const session = localStorage.getItem('adminSession');
+      const sessionData = session ? JSON.parse(session) : {};
+      const token = sessionData.token;
       
+      // Create form data for the upload
       const formData = new FormData();
       formData.append('image', file);
       
-      console.log('Sending upload request...');
-    const response = await axios.post(`${getApiBase()}/uploadImage`, formData, {
+      // Get the API endpoint URL
+      const apiUrl = `${getApiBase()}/uploadImage.php`;
+      
+      // Send the request with progress tracking and auth token
+      const response = await axios.post(apiUrl, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
         },
         onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          setUploadProgress(percentCompleted);
-          console.log(`Upload progress: ${percentCompleted}%`);
-        }
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        },
       });
       
-      console.log('Upload API response:', response);
+      if (response.data.success) {
+        // Update the about data with the new image path
+        let normalizedPath = response.data.filePath;
+        
+        // Handle image paths to ensure they're consistent
+        if (normalizedPath.includes('/images/')) {
+          const filename = normalizedPath.split('/').pop();
+          normalizedPath = `/images/${filename}`;
+        }
+        
+        // Apply proper base path using our utility
+        const filePath = getImagePath(normalizedPath);
+        
+        setAboutData({
+          ...aboutData,
+          artistImage: filePath
+        });
+        
+        // Add image preload test
+        const img = new Image();
+        img.onload = () => {};
+        img.onerror = () => setMessage('Warning: Image loaded but preview failed');
+        img.src = filePath;
+        
+        setMessage('About image uploaded successfully!');
+      } else {
+        setMessage(`Error: ${response.data.error || 'Upload failed'}`);
+      }
+    } catch (error) {
+      // Error handled in UI
+      setMessage(`Error uploading image: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setUploadingImage(false);
+      setUploadProgress(0);
+    }
+  };
+  
+  // Handle gallery image upload
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setMessage('Please select a valid image file (JPEG, PNG, GIF, WEBP)');
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage('Image file size must be less than 5MB');
+      return;
+    }
+
+    // Set upload state
+    setUploadingImage(true);
+    setUploadError('');
+    
+    try {
+      // Get auth token from session
+      const session = localStorage.getItem('adminSession');
+      const sessionData = session ? JSON.parse(session) : {};
+      const token = sessionData.token;
       
-      if (response.data && response.data.success) {
-        console.log('Upload success, response:', response.data);
+      // Create form data for the upload
+      const formData = new FormData();
+      formData.append('image', file);
+
+      // Get the API endpoint URL
+      const apiUrl = `${getApiBase()}/uploadImage.php`;
+      
+      // Send the request with progress tracking and auth token
+      const response = await axios.post(apiUrl, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        },
+      });
+      
+      if (response.data.success) {
+        // Set the uploaded image URL
+        const uploadedPath = response.data.filePath;
+        setUploadedImageUrl(uploadedPath);
         
-        // Get raw path from response (e.g., "/images/work-abc123.jpg")
-        const rawFilePath = response.data.filePath.startsWith('/') ? 
-          response.data.filePath : `/${response.data.filePath}`;
-        
-        // Store both the raw path and the full path with basePath
-        // The raw path is what we'll save to the artwork object
-        console.log('Raw path from server:', rawFilePath);
-        
-        // This is just for preview purposes
-        const displayPath = getImagePath(rawFilePath);
-        console.log('Display path with basePath:', displayPath);
-        
-        // Important: Store the RAW path without basePath in the uploadedImageUrl
-        // This ensures it will work with getImagePath() later when needed
-        setUploadedImageUrl(rawFilePath);
-        console.log('Set uploadedImageUrl to raw path:', rawFilePath);
+        // Save the raw path to be used when updating artwork
         setMessage('Image uploaded successfully! Click "Apply To Artwork" to use this image for the artwork.');
         
-        // Debug - try to preload the image to ensure it's accessible
+        // Preload the image to ensure it's accessible
         const img = new Image();
-        img.onload = () => console.log('Image preloaded successfully:', displayPath);
-        img.onerror = (err) => console.error('Failed to preload image:', displayPath, err);
-        // Use the display path with proper base path for preview
-        img.src = displayPath;
+        img.onload = () => {};
+        img.onerror = (err) => setUploadError(`Failed to load preview image`);
+        img.src = getImagePath(uploadedPath);
       } else {
         throw new Error('Upload response did not indicate success');
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
+      // Error handled in UI
       setUploadError(`Upload failed: ${error.response?.data?.error || error.message}`);
       setMessage(`Error uploading image: ${error.response?.data?.error || error.message}`);
     } finally {
@@ -231,8 +366,8 @@ export default function Admin() {
 
   const handleAddOrUpdate = (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.category) {
-      setMessage('Title and category are required');
+    if (!formData.title) {
+      setMessage('Title is required');
       return;
     }
     
@@ -274,7 +409,6 @@ export default function Admin() {
       year: '',
       medium: '',
       dimensions: '',
-      category: '',
       description: '',
       imageUrl: '',
       status: 'available',
@@ -299,9 +433,43 @@ export default function Admin() {
     }
   };
 
+  // Handle logout
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setPassword('');
+    localStorage.removeItem('adminSession');
+    setMessage('');
+    // Clear any form data or state
+    resetFormState();
+  };
+
+  // Reset all form state
+  const resetFormState = () => {
+    setFormData(initialFormState);
+    setActiveTab('gallery');
+  };
+
+  // Handle moving an artwork up in the display order
+  const handleMoveUp = (index) => {
+    if (index <= 0) return; // Already at the top
+    
+    const updatedArtworks = [...artworks];
+    // Swap with the previous item
+    [updatedArtworks[index-1], updatedArtworks[index]] = [updatedArtworks[index], updatedArtworks[index-1]];
+    
+    setArtworks(updatedArtworks);
+    setMessage('Artwork order updated. Remember to save the gallery.');
+  };
+  
+  // Handle moving an artwork down in the display order
+  const handleMoveDown = (index) => {
+    if (index >= artworks.length - 1) return; // Already at the bottom
+    
+    const updatedArtworks = [...artworks];
+    // Swap with the next item
+    [updatedArtworks[index], updatedArtworks[index+1]] = [updatedArtworks[index+1], updatedArtworks[index]];
+    
+    setArtworks(updatedArtworks);
+    setMessage('Artwork order updated. Remember to save the gallery.');
   };
 
   // Handle updating a bio paragraph
@@ -376,110 +544,44 @@ export default function Admin() {
   
   // Handle saving about page data
   const handleSaveAbout = async () => {
-    try {
-      setMessage('Saving about page data...');
-      const apiUrl = `${getApiBase()}/saveAbout`;
-      console.log('Using About API URL:', apiUrl);
-      const response = await axios.post(apiUrl, aboutData);
-      
-      if (response.data.success) {
-        setMessage('About page data saved successfully!');
-        setTimeout(() => setMessage(''), 3000);
-      } else {
-        setMessage(`Error: ${response.data.message}`);
-      }
-    } catch (error) {
-      console.error('Error saving about data:', error);
-      setMessage(`Error saving about data: ${error.message}`);
-    }
-  };
-  
-  // Handle about page image upload
-  const handleAboutImageUpload = async (e) => {
-    console.log('Starting about image upload...');
-    const file = e.target.files[0];
-    if (!file) {
-      console.log('No file selected');
+    if (!isLoggedIn) {
+      setMessage('You must be logged in to save changes');
       return;
     }
     
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      setMessage('Please select a valid image file (JPEG, PNG, GIF, WEBP)');
-      return;
-    }
-    
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setMessage('Image file size must be less than 5MB');
-      return;
-    }
+    setMessage('Saving about page data...');
     
     try {
-      setUploadingImage(true);
-      setUploadProgress(0);
-      setMessage('Uploading about image...');
+      // Get auth token from session
+      const session = localStorage.getItem('adminSession');
+      const sessionData = session ? JSON.parse(session) : {};
+      const token = sessionData.token;
       
-      const formData = new FormData();
-      formData.append('image', file);
-      
-      const response = await axios.post(`${getApiBase()}/uploadImage`, formData, {
+      // Use the API endpoint with authentication
+      const response = await axios.post(`${getApiBase()}/saveAbout.php`, aboutData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          setUploadProgress(percentCompleted);
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
       });
       
       if (response.data && response.data.success) {
-        // Get raw path from response
-        const rawFilePath = response.data.filePath.startsWith('/') ? 
-          response.data.filePath : `/${response.data.filePath}`;
-        
-        // Ensure the path includes /images/ prefix (convention for site images)
-        let normalizedPath = rawFilePath;
-        if (!normalizedPath.includes('/images/')) {
-          // Extract filename
-          const filename = normalizedPath.split('/').pop();
-          normalizedPath = `/images/${filename}`;
-          console.log('Normalized image path to include /images/:', normalizedPath);
-        }
-        
-        // Apply proper base path using our utility
-        const filePath = getImagePath(normalizedPath);
-        
-        console.log('Raw about image path from server:', rawFilePath);
-        console.log('Setting about image with basePath:', filePath);
-        
-        setAboutData({
-          ...aboutData,
-          artistImage: filePath
-        });
-        
-        // Add image preload test
-        const img = new Image();
-        img.onload = () => console.log('About image preloaded successfully:', filePath);
-        img.onerror = (err) => console.error('Failed to preload about image:', filePath, err);
-        img.src = filePath;
-        
-        setMessage('About image uploaded successfully!');
+        setMessage('About page data saved successfully!');
+        setTimeout(() => setMessage(''), 3000);
       } else {
-        setMessage(`Error: ${response.data.message}`);
+        setMessage(`Error: ${response.data.message || 'Save failed'}`); 
       }
     } catch (error) {
-      console.error('Error uploading about image:', error);
-      setMessage(`Error uploading image: ${error.message}`);
-    } finally {
-      setUploadingImage(false);
+      setMessage(`Error saving about data: ${error.message}`);
     }
   };
   
   const handleSaveGallery = async () => {
+    if (!isLoggedIn) {
+      setMessage('You must be logged in to save changes');
+      return;
+    }
+
     try {
       // First check if there are any artworks with uploadedImageUrl that haven't been saved
       if (uploadedImageUrl && !artworks.some(art => art.imageUrl === uploadedImageUrl)) {
@@ -490,38 +592,42 @@ export default function Admin() {
         }
       }
 
-      // Log the gallery data being saved
-      console.log('Saving gallery with artworks:', artworks);
+      setMessage('Saving gallery data...');
       
-      const apiUrl = `${getApiBase()}/saveGallery`;
-      console.log('Using API URL:', apiUrl);
+      // Get auth token from session
+      const session = localStorage.getItem('adminSession');
+      const sessionData = session ? JSON.parse(session) : {};
+      const token = sessionData.token;
       
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ works: artworks }),
-      });
+      // Use API endpoint with authentication
+      const response = await axios.post(
+        `${getApiBase()}/saveGallery.php`, 
+        { works: artworks },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save gallery data');
+      if (response.data && response.data.success) {
+        setMessage('Gallery saved successfully! Changes will appear in the gallery.');
+        
+        // After saving successfully, reset the uploadedImageUrl but keep the form data
+        // so the user can see what they've just saved
+        setUploadedImageUrl('');
+        
+        // Force a reload of the gallery page data cache
+        const refreshUrl = `${getApiBase()}/getGallery?forceRefresh=true`;
+        fetch(refreshUrl).catch(err => {
+          // Error handled silently
+        });
+      } else {
+        throw new Error(response.data.error || 'Failed to save gallery data');
       }
-      
-      const data = await response.json();
-      setMessage(data.message || 'Gallery saved successfully! Changes will appear in the gallery.');
-      
-      // After saving successfully, reset the uploadedImageUrl but keep the form data
-      // so the user can see what they've just saved
-      setUploadedImageUrl('');
-      
-      // Force a reload of the gallery page data cache
-      const refreshUrl = `${getApiBase()}/getGallery?forceRefresh=true`;
-      console.log('Refreshing gallery cache:', refreshUrl);
-      fetch(refreshUrl).catch(err => {
-        console.error('Failed to refresh gallery cache:', err);
-      });
     } catch (error) {
-      console.error('Error saving gallery data:', error);
+      // Error handled in UI
       setMessage(`Error: ${error.message}`);
     }
   };
@@ -623,17 +729,6 @@ export default function Admin() {
 
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
-                <label htmlFor="category">Category</label>
-                <input
-                  type="text"
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className={styles.formGroup}>
                 <label htmlFor="status">Status</label>
                 <select
                   id="status"
@@ -670,12 +765,7 @@ export default function Admin() {
                   <div className={styles.uploadProgress}>Uploading: {uploadProgress}%</div>
                 )}
 
-                {/* Debug Information */}
-                <div className={styles.debug}>
-                  <p>Upload state: {uploadingImage ? 'Uploading' : 'Ready'}</p>
-                  <p>Upload progress: {uploadProgress}%</p>
-                  <p>Upload URL: {uploadedImageUrl || 'None'}</p>
-                </div>
+
 
                 {/* Upload Error Display */}
                 {uploadError && (
@@ -815,7 +905,7 @@ export default function Admin() {
               </div>
           
           <div className={styles.artworkGrid}>
-            {artworks.map(artwork => (
+            {artworks.map((artwork, index) => (
               <div key={artwork.id} className={styles.artworkCard}>
                 <div className={styles.artworkImageContainer}>
                   {artwork.imageUrl ? (
@@ -836,12 +926,32 @@ export default function Admin() {
                   </p>
                 </div>
                 <div className={styles.artworkActions}>
-                  <button onClick={() => handleEdit(artwork)} className={styles.editButton}>
-                    Edit
-                  </button>
-                  <button onClick={() => handleDelete(artwork.id)} className={styles.deleteButton}>
-                    Delete
-                  </button>
+                  <div className={styles.orderControls}>
+                    <button 
+                      onClick={() => handleMoveUp(index)} 
+                      className={styles.orderButton}
+                      disabled={index === 0}
+                      title="Move Up"
+                    >
+                      ↑
+                    </button>
+                    <button 
+                      onClick={() => handleMoveDown(index)} 
+                      className={styles.orderButton}
+                      disabled={index === artworks.length - 1}
+                      title="Move Down"
+                    >
+                      ↓
+                    </button>
+                  </div>
+                  <div>
+                    <button onClick={() => handleEdit(artwork)} className={styles.editButton}>
+                      Edit
+                    </button>
+                    <button onClick={() => handleDelete(artwork.id)} className={styles.deleteButton}>
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
